@@ -1,4 +1,5 @@
 # ProxyStation
+A proxy servers list management program runs on Azure Functions. Support most of shadowsocks client including Surge, Clash, Shadowrocket, Surfboard.
 
 ### App Supported
 | Alias        | App                                                | As source | As output |
@@ -10,6 +11,9 @@
 | `surfboard`  | Surfboard                                          | X         | √         |
 
 * `Surfboard` as input is not supported becasue it's still in beta stage
+
+### How to Deploy to Azure Functions
+Coming soon.
 
 ### How to Add Profile
 This function loads profile from environment variables.
