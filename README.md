@@ -2,11 +2,11 @@
 A proxy servers list management program runs on Azure Functions. Support most of shadowsocks client including Surge, Clash, Shadowrocket, Surfboard.
 
 ### Demo
-* General Profile: [](https://proxy-station.azurewebsites.net/api/train/demo/general)
-* Surge Profile: [](https://proxy-station.azurewebsites.net/api/train/demo/surge)
-* Surge List: [](https://proxy-station.azurewebsites.net/api/train/demo/surge-list)
-* Clash Profile: [](https://proxy-station.azurewebsites.net/api/train/demo/clash)
-* Surfboard Profile: [](https://proxy-station.azurewebsites.net/api/train/demo/surfboard)
+* General Profile: <https://proxy-station.azurewebsites.net/api/train/demo/general>
+* Surge Profile: <https://proxy-station.azurewebsites.net/api/train/demo/surge>
+* Surge List: <https://proxy-station.azurewebsites.net/api/train/demo/surge-list>
+* Clash Profile: <https://proxy-station.azurewebsites.net/api/train/demo/clash>
+* Surfboard Profile: <https://proxy-station.azurewebsites.net/api/train/demo/surfboard>
 
 ### App Supported
 | Alias        | App                                                | As source | As output |
