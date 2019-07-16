@@ -34,9 +34,16 @@ The key name of the variable is profile name, the value is a structured JSON str
     "source": "<string, the url to source profile>",
     "type": "<string, the type of source profile, available values seen `alias`>",
     "allowDirectAccess:": "<boolean, if true and when target and source type are the same, the function will return un-processed profile>",
+    "filters": [ // filters are diabled when allowDirectAccess is enabled
+        {
+            "name": "<string, filter name>",
+            "mode": "<whitelist | blacklist(default)>",
+            ... // filter options
+        },
+        ...
+    ]
 }
 ```
-
 
 ### API
 
@@ -51,3 +58,16 @@ parse the source and format to specific format according to argument `output`.
 Argument:
 * `profile-name` is pre-defined name of profile source
 * `output` is the type of target profile
+
+
+### Supported Filters
+Filters allow you to control outcome of servers list.
+
+#### Server Name Filter
+```json
+{
+    "name": "name",
+    "keyword": "<string, keyword to match>",
+    "matching": "<suffix | prefix | contains(default), imply how to match the keyword>"
+}
+```

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ProxyStation.Model;
+using ProxyStation.ServerFilter;
+using ProxyStation.Util;
 using YamlDotNet.RepresentationModel;
 
 namespace ProxyStation
@@ -22,7 +24,8 @@ namespace ProxyStation
             }
         }
 
-        public static string KebabCase2PascalCase(string kebabCase) {
+        public static string KebabCase2PascalCase(string kebabCase)
+        {
             var words = kebabCase
                 .Split('-')
                 .Select(w => w.Substring(0, 1).ToUpper() + w.Substring(1));
@@ -41,17 +44,30 @@ namespace ProxyStation
             {
                 var yaml = new YamlStream();
                 yaml.Load(reader);
-
                 var mapping = (yaml.Documents[0].RootNode as YamlMappingNode).Children;
+
                 profile.Source = (mapping["source"] as YamlScalarNode).Value;
                 profile.Name = (mapping["name"] as YamlScalarNode).Value;
                 profile.Type = ParseProfileTypeName((mapping["type"] as YamlScalarNode).Value);
-                YamlNode allowDirectAccessNode;
-                if (mapping.TryGetValue("allowDirectAccess", out allowDirectAccessNode)) {
-                    profile.AllowDirectAccess = (allowDirectAccessNode as YamlScalarNode).Value == "true";
+                profile.AllowDirectAccess = Yaml.GetTruthFromYamlChildrenNode(yaml.Documents[0].RootNode, "allowDirectAccess");
+
+                YamlNode filtersNode;
+                if (!mapping.TryGetValue("filters", out filtersNode) || filtersNode.NodeType != YamlNodeType.Sequence)
+                {
+                    goto EndReading;
+                }
+
+                foreach (var filterNode in (filtersNode as YamlSequenceNode).Children)
+                {
+                    if (filterNode.NodeType != YamlNodeType.Mapping) continue;
+                    var filter = FilterFactory.GetFilter(Yaml.GetStringOrDefaultFromYamlChildrenNode(filterNode, "name"));
+                    if (filter == null) continue;
+                    filter.LoadOptions(filterNode);
+                    profile.Filters.Add(filter);
                 }
             }
 
+        EndReading:
             return profile;
         }
     }

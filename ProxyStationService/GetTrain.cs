@@ -47,6 +47,13 @@ namespace ProxyStation
                 var servers = profileParser.Parse(profileContent);
                 logger.LogInformation($"Download profile `{profile.Name}` and get {servers.Length} servers");
 
+                foreach (var filter in profile.Filters) {
+                    var previousCount = servers.Length;
+                    servers = filter.Do(servers);
+                    logger.LogInformation($"Performed filter `{filter.GetType()}`, result: {servers.Length} servers");
+                    if (servers.Length == 0) break;
+                }
+
                 if (targetProfileParser is SurgeParser)
                 {
                     newProfile = targetProfileParser.Encode(servers, new SurgeEncodeOptions()

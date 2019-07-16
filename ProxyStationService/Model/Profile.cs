@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using ProxyStation.ServerFilter;
 
 namespace ProxyStation.Model
 {
@@ -13,6 +15,8 @@ namespace ProxyStation.Model
         public string Name { get; set; }
 
         public bool AllowDirectAccess { get; set; }
+
+        public List<BaseFilter> Filters { get; set; } = new List<BaseFilter>();
 
         public async Task<string> Download()
         {

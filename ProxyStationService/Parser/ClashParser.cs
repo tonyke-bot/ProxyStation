@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using ProxyStation.Model;
+using ProxyStation.Util;
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 
@@ -31,7 +32,7 @@ namespace ProxyStation.ProfileParser
 
                 foreach (YamlMappingNode proxy in proxies)
                 {
-                    switch (GetStringOrDefaultFromYamlChildrenNode(proxy, "type"))
+                    switch (Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "type"))
                     {
                         case "ss":
                             var server = ParseShadowsocksServer(proxy);
@@ -172,17 +173,17 @@ namespace ProxyStation.ProfileParser
         public static Server ParseShadowsocksServer(YamlMappingNode proxy)
         {
             int port;
-            if (!Int32.TryParse(GetStringOrDefaultFromYamlChildrenNode(proxy, "port", "0"), out port))
+            if (!Int32.TryParse(Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "port", "0"), out port))
                 return null;
 
             var server = new ShadowsocksServer()
             {
                 Port = port,
-                Name = GetStringOrDefaultFromYamlChildrenNode(proxy, "name"),
-                Host = GetStringOrDefaultFromYamlChildrenNode(proxy, "server"),
-                Password = GetStringOrDefaultFromYamlChildrenNode(proxy, "password"),
-                Method = GetStringOrDefaultFromYamlChildrenNode(proxy, "cipher"),
-                UDPRelay = GetTruthFromYamlChildrenNode(proxy, "udp"),
+                Name = Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "name"),
+                Host = Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "server"),
+                Password = Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "password"),
+                Method = Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "cipher"),
+                UDPRelay = Yaml.GetTruthFromYamlChildrenNode(proxy, "udp"),
             };
 
             YamlNode pluginOptionsNode;
@@ -190,14 +191,14 @@ namespace ProxyStation.ProfileParser
             // https://github.com/Dreamacro/clash/blob/34338e7107c1868124f8aab2446f6b71c9b0640f/adapters/outbound/shadowsocks.go#L135
             if (proxy.Children.TryGetValue("plugin-opts", out pluginOptionsNode) && pluginOptionsNode.NodeType == YamlNodeType.Mapping)
             {
-                switch (GetStringOrDefaultFromYamlChildrenNode(proxy, "plugin"))
+                switch (Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "plugin"))
                 {
                     case "obfs":
                         server.PluginType = PluginType.SimpleObfs;
                         server.PluginOptions = new SimpleObfsPluginOptions()
                         {
-                            Mode = GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "mode"),
-                            Host = GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "host"),
+                            Mode = Yaml.GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "mode"),
+                            Host = Yaml.GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "host"),
                         };
                         break;
                     case "v2ray-plugin":
@@ -207,11 +208,11 @@ namespace ProxyStation.ProfileParser
                         server.PluginType = PluginType.V2Ray;
                         server.PluginOptions = options;
 
-                        options.Host = GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "host");
-                        options.Mode = GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "mode");
-                        options.Path = GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "path");
-                        options.EnableTLS = GetTruthFromYamlChildrenNode(pluginOptionsNode, "tls");
-                        options.SkipCertVerification = GetTruthFromYamlChildrenNode(pluginOptionsNode, "skip-cert-verify");
+                        options.Host = Yaml.GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "host");
+                        options.Mode = Yaml.GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "mode");
+                        options.Path = Yaml.GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "path");
+                        options.EnableTLS = Yaml.GetTruthFromYamlChildrenNode(pluginOptionsNode, "tls");
+                        options.SkipCertVerification = Yaml.GetTruthFromYamlChildrenNode(pluginOptionsNode, "skip-cert-verify");
                         options.Headers = new Dictionary<string, string>();
 
                         YamlNode headersNode;
@@ -231,8 +232,8 @@ namespace ProxyStation.ProfileParser
 
             if (server.PluginType == PluginType.None)
             {
-                var obfs = GetStringOrDefaultFromYamlChildrenNode(proxy, "obfs");
-                var obfsHost = GetStringOrDefaultFromYamlChildrenNode(proxy, "obfs-host");
+                var obfs = Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "obfs");
+                var obfsHost = Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "obfs-host");
 
                 if (!String.IsNullOrEmpty(obfs))
                 {
@@ -247,38 +248,5 @@ namespace ProxyStation.ProfileParser
 
             return server;
         }
-
-        private static bool TryGetStringFromYamlChildrenNode(YamlNode rootNode, string keyName, out string buffer)
-        {
-            buffer = "";
-            if (!(rootNode as YamlMappingNode).Children.ContainsKey(keyName)) return false;
-
-            var node = (rootNode as YamlMappingNode).Children[keyName];
-            if (!(node is YamlScalarNode)) return false;
-
-            buffer = (node as YamlScalarNode).Value;
-            return true;
-        }
-
-        private static string GetStringOrDefaultFromYamlChildrenNode(YamlNode rootNode, string keyName, string defaultValue = "")
-        {
-            if (!(rootNode as YamlMappingNode).Children.ContainsKey(keyName)) return default;
-
-            var node = (rootNode as YamlMappingNode).Children[keyName];
-            if (!(node is YamlScalarNode)) return default;
-
-            return (node as YamlScalarNode).Value;
-        }
-
-        private static bool GetTruthFromYamlChildrenNode(YamlNode rootNode, string keyName)
-        {
-            if (!(rootNode as YamlMappingNode).Children.ContainsKey(keyName)) return default;
-
-            var node = (rootNode as YamlMappingNode).Children[keyName];
-            if (!(node is YamlScalarNode)) return default;
-
-            return (node as YamlScalarNode).Value == "true";
-        }
-
     }
 }
