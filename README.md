@@ -27,7 +27,7 @@ This function loads profile from environment variables.
 In production, the variables can be set in *Azure Portal*.
 During local testing, the variables can be write into `local.settings.json`.
 The key name of the variable is profile name, the value is a structured JSON string.
-```json
+```jsonc
 // Please write in one line. This snippet is just an example
 {
     "name": "<string, name of profile>",
@@ -64,7 +64,7 @@ Argument:
 Filters allow you to control outcome of servers list.
 
 #### Server Name Filter
-```json
+```jsonc
 {
     "name": "name",
     "keyword": "<string, keyword to match>",
