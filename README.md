@@ -48,7 +48,7 @@ The key name of the variable is profile name, the value is a structured JSON str
 ### API
 
 #### Get Built-in Profile
-`GET /api/train/{profile-name}/{output}`
+`GET /api/train/{profile-name}/{output?}`
 
 Description:
 Developer can pre-define some profile sources before deploy to *Azure Functions*.
@@ -57,7 +57,7 @@ parse the source and format to specific format according to argument `output`.
 
 Argument:
 * `profile-name` is pre-defined name of profile source
-* `output` is the type of target profile
+* `output` is the type of target profile, if omitted, will be guessed from user-agent.
 
 
 ### Supported Filters

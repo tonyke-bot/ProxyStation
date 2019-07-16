@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using ProxyStation.ProfileParser;
 using System.Text;
 using System;
+using ProxyStation.Model;
 
 namespace ProxyStation
 {
@@ -16,7 +17,7 @@ namespace ProxyStation
 
         [FunctionName("GetTrain")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "train/{profileName}/{typeName}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "train/{profileName}/{typeName?}")] HttpRequest req,
             string profileName,
             string typeName,
             ILogger logger)
@@ -31,8 +32,13 @@ namespace ProxyStation
                 return new NotFoundResult();
             }
 
-            var targetProfileParser = ParserFactory.GetParser(typeName, logger);
-            if (targetProfileParser == null) return new NotFoundResult();
+            IProfileParser targetProfileParser = ParserFactory.GetParser(typeName ?? "", logger);
+            if (targetProfileParser == null) {
+                var userAgent = req.Headers["user-agent"];
+                var probableType = GuessTypeFromUserAgent(userAgent);
+                targetProfileParser = ParserFactory.GetParser(probableType, logger);
+                logger.LogInformation("Attempt to guess target type from user agent, UserAgent={userAgent}, Result={targetType}", userAgent, targetProfileParser.GetType());
+            }
 
             string newProfile;
             var profileContent = await profile.Download();
@@ -47,7 +53,8 @@ namespace ProxyStation
                 var servers = profileParser.Parse(profileContent);
                 logger.LogInformation($"Download profile `{profile.Name}` and get {servers.Length} servers");
 
-                foreach (var filter in profile.Filters) {
+                foreach (var filter in profile.Filters)
+                {
                     var previousCount = servers.Length;
                     servers = filter.Do(servers);
                     logger.LogInformation($"Performed filter `{filter.GetType()}`, result: {servers.Length} servers");
@@ -67,6 +74,15 @@ namespace ProxyStation
             var result = new FileContentResult(Encoding.UTF8.GetBytes(newProfile), $"{MimeTypes.GetMimeType(fileName)}; charset=UTF-8");
             result.FileDownloadName = fileName;
             return result;
+        }
+
+        public static ProfileType GuessTypeFromUserAgent(string userAgent)
+        {
+            userAgent = userAgent.ToLower();
+            if (userAgent.Contains("surge")) return ProfileType.Surge;
+            else if (userAgent.Contains("clash")) return ProfileType.Clash;
+            else if (userAgent.Contains("surfboard")) return ProfileType.Surfboard;
+            return ProfileType.General;
         }
     }
 }
