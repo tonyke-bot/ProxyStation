@@ -21,9 +21,6 @@ namespace ProxyStation.ProfileParser
 
         public string Encode(Server[] servers) => Encode(servers, null);
 
-        public string ExtName()
-        {
-            return ".conf";
-        }
+        public string ExtName() => "";
     }
 }

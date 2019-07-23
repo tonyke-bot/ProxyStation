@@ -175,9 +175,6 @@ namespace ProxyStation.ProfileParser
             return sb.ToString();
         }
 
-        public string ExtName()
-        {
-            return ".conf";
-        }
+        public string ExtName() => "";
     }
 }
