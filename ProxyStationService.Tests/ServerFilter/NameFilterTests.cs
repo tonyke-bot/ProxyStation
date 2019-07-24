@@ -1,14 +1,13 @@
 using System.IO;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ProxyStation.Model;
 using ProxyStation.ProfileParser;
 using ProxyStation.ServerFilter;
+using Xunit;
 using YamlDotNet.RepresentationModel;
 
 namespace ProxyStation.UnitTests.ServerFilter
 {
-    [TestClass]
     public class NameFilterTests
     {
         NameFilter filter;
@@ -27,7 +26,7 @@ namespace ProxyStation.UnitTests.ServerFilter
             };
         }
 
-        [TestMethod]
+        [Fact]
         public void ShouldSuccessWithWhitelistMode()
         {
             var optionsYaml = @"
@@ -40,15 +39,15 @@ matching: prefix
             yaml.Load(new StringReader(optionsYaml));
 
             filter.LoadOptions(yaml.Documents[0].RootNode);
-            Assert.AreEqual(FilterMode.WhiteList, filter.Mode);
-            Assert.AreEqual(NameFilterMatching.HasPrefix, filter.Matching);
-            Assert.AreEqual("goodserver", filter.Keyword);
+            Assert.Equal(FilterMode.WhiteList, filter.Mode);
+            Assert.Equal(NameFilterMatching.HasPrefix, filter.Matching);
+            Assert.Equal("goodserver", filter.Keyword);
 
             var filtered = filter.Do(servers);
-            Assert.AreEqual(3, filtered.Length);
+            Assert.Equal(3, filtered.Length);
         }
 
-        [TestMethod]
+        [Fact]
         public void ShouldSuccessWithBlacklistMode()
         {
             var optionsYaml = @"
@@ -61,15 +60,15 @@ matching: prefix
             yaml.Load(new StringReader(optionsYaml));
 
             filter.LoadOptions(yaml.Documents[0].RootNode);
-            Assert.AreEqual(FilterMode.BlackList, filter.Mode);
-            Assert.AreEqual(NameFilterMatching.HasPrefix, filter.Matching);
-            Assert.AreEqual("badserver", filter.Keyword);
+            Assert.Equal(FilterMode.BlackList, filter.Mode);
+            Assert.Equal(NameFilterMatching.HasPrefix, filter.Matching);
+            Assert.Equal("badserver", filter.Keyword);
 
             var filtered = filter.Do(servers);
-            Assert.AreEqual(3, filtered.Length);
+            Assert.Equal(3, filtered.Length);
         }
 
-        [TestMethod]
+        [Fact]
         public void ShouldSuccessWithContainsMode()
         {
             var optionsYaml = @"
@@ -82,12 +81,12 @@ matching: contains
             yaml.Load(new StringReader(optionsYaml));
 
             filter.LoadOptions(yaml.Documents[0].RootNode);
-            Assert.AreEqual(FilterMode.WhiteList, filter.Mode);
-            Assert.AreEqual(NameFilterMatching.Contains, filter.Matching);
-            Assert.AreEqual("server ", filter.Keyword);
+            Assert.Equal(FilterMode.WhiteList, filter.Mode);
+            Assert.Equal(NameFilterMatching.Contains, filter.Matching);
+            Assert.Equal("server ", filter.Keyword);
 
             var filtered = filter.Do(servers);
-            Assert.AreEqual(5, filtered.Length);
+            Assert.Equal(5, filtered.Length);
         }
     }
 }
