@@ -10,6 +10,11 @@ using YamlDotNet.Serialization;
 
 namespace ProxyStation.ProfileParser
 {
+    public class ClashEncodeOptions : IEncodeOptions
+    {
+        public string EnhancedMode { get; set; }
+    }
+
     public class ClashParser : IProfileParser
     {
         private ILogger logger;
@@ -64,7 +69,6 @@ namespace ProxyStation.ProfileParser
                 { "enable", true },
                 { "ipv6", false },
                 { "listen", "0.0.0.0:53" },
-                { "enhanced-mode", "redir-host" },
                 { "nameserver", new string[]
                     {
                         "117.50.10.10",
@@ -156,6 +160,13 @@ namespace ProxyStation.ProfileParser
                 },
             };
             dataDict.Add("Proxy Group", proxyGroup);
+
+            if (options is ClashEncodeOptions) {
+                var clashOptions = options as ClashEncodeOptions;
+                if (!String.IsNullOrWhiteSpace(clashOptions.EnhancedMode)) {
+                    dnsSettings.Add("enhanced-mode", clashOptions.EnhancedMode.ToLower());
+                }
+            }
 
             var serializer = new SerializerBuilder().Build();
             var profile = serializer.Serialize(dataDict);

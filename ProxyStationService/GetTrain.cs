@@ -33,7 +33,8 @@ namespace ProxyStation
             }
 
             IProfileParser targetProfileParser = ParserFactory.GetParser(typeName ?? "", logger);
-            if (targetProfileParser == null) {
+            if (targetProfileParser == null)
+            {
                 var userAgent = req.Headers["user-agent"];
                 var probableType = GuessTypeFromUserAgent(userAgent);
                 targetProfileParser = ParserFactory.GetParser(probableType, logger);
@@ -61,14 +62,23 @@ namespace ProxyStation
                     if (servers.Length == 0) break;
                 }
 
-                if (targetProfileParser is SurgeParser)
+                IEncodeOptions options = null;
+                switch (targetProfileParser)
                 {
-                    newProfile = targetProfileParser.Encode(servers, new SurgeEncodeOptions()
-                    {
-                        ProfileURL = GetCurrentURL(req),
-                    });
+                    case SurgeParser surgeParser:
+                        var surgeOptions = new SurgeEncodeOptions();
+                        surgeOptions.ProfileURL = GetCurrentURL(req);
+                        options = surgeOptions;
+                        break;
+
+                    case ClashParser clashParser:
+                        var clashOptions =  new ClashEncodeOptions();
+                        clashOptions.EnhancedMode = req.Query.ContainsKey("enhanced-mode") ? req.Query["enhanced-mode"].ToString() : "";
+                        options = clashOptions;
+                        break;
                 }
-                else newProfile = targetProfileParser.Encode(servers);
+
+                newProfile = targetProfileParser.Encode(servers, options);
             }
 
             var result = new FileContentResult(Encoding.UTF8.GetBytes(newProfile), $"{MimeTypes.GetMimeType(fileName)}; charset=UTF-8");
