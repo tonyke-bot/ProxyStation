@@ -126,7 +126,6 @@ namespace ProxyStation.ProfileParser
         public string Encode(Server[] servers, IEncodeOptions options)
         {
             var stringBuilder = new StringBuilder();
-
             if (options is SurgeEncodeOptions)
             {
                 var surgeOptions = options as SurgeEncodeOptions;
@@ -136,20 +135,20 @@ namespace ProxyStation.ProfileParser
                     stringBuilder.AppendLine();
                 }
             }
-            stringBuilder.AppendLine(ProfileSnippet.SurgeCommon);
 
-            stringBuilder.AppendLine("[Proxy]");
-            stringBuilder.AppendLine(new SurgeListParser(logger).Encode(servers));
+            var proxySectionBuilder = new StringBuilder();            
+            proxySectionBuilder.AppendLine("[Proxy]");
+            proxySectionBuilder.AppendLine(new SurgeListParser(logger).Encode(servers));
 
             var proxies = servers.Select(s => s.Name).ToList();
             if (proxies.Count == 0) proxies.Add("DIRECT");
             var proxyNames = String.Join(", ", proxies);
-            stringBuilder.AppendLine("[Proxy Group]");
-            stringBuilder.AppendLine("Default = select, Proxy, DIRECT");
-            stringBuilder.AppendLine($"Proxy = url-test, {proxyNames}, url=http://captive.apple.com, interval=600, tolerance=200");
-            stringBuilder.AppendLine("AdBlock = select, REJECT, REJECT-TINYGIF, DIRECT, Default");
+            proxySectionBuilder.AppendLine("[Proxy Group]");
+            proxySectionBuilder.AppendLine("Default = select, Proxy, DIRECT");
+            proxySectionBuilder.AppendLine($"Proxy = url-test, {proxyNames}, url=http://captive.apple.com, interval=600, tolerance=200");
+            proxySectionBuilder.AppendLine("AdBlock = select, REJECT, REJECT-TINYGIF, DIRECT, Default");
 
-            stringBuilder.AppendLine(ProfileSnippet.SurgeRule);
+            stringBuilder.Append(ProfileSnippet.SurgeCommon.Replace(ProfileSnippet.SurgeProxyPlaceHolder, proxySectionBuilder.ToString()));
             return stringBuilder.ToString();
         }
 

@@ -2,6 +2,8 @@ namespace ProxyStation.ProfileParser
 {
     public static partial class ProfileSnippet
     {
+        public const string SurgeProxyPlaceHolder = "# === PROXY SETUP PLACEHOLDER ===";
+        
         public const string SurgeCommon = @"[General]
 loglevel = notify
 dns-server = system, 223.5.5.5, 223.6.6.6, 8.8.8.8, 8.8.4.4
@@ -23,9 +25,10 @@ hide-apple-request = true
 hide-crashlytics-request = true
 hide-udp = false
 use-keyword-filter = false
-";
 
-        public const string SurgeRule = @"
+"
++ SurgeProxyPlaceHolder
++ @"
 [Rule]
 USER-AGENT,AppStore*,Default
 USER-AGENT,com.apple.appstored*,Default
