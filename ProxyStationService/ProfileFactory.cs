@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ProxyStation.Model;
@@ -11,6 +10,13 @@ namespace ProxyStation
 {
     public static class ProfileFactory
     {
+        static IEnvironmentManager environmentManager;
+
+        public static void SetEnvironmentManager(IEnvironmentManager environmentManager)
+        {
+            ProfileFactory.environmentManager = environmentManager;
+        }
+
         public static ProfileType ParseProfileTypeName(string profileType)
         {
             switch (profileType)
@@ -18,25 +24,14 @@ namespace ProxyStation
                 case "general": return ProfileType.General;
                 case "surge": return ProfileType.Surge;
                 case "clash": return ProfileType.Clash;
-                case "surfboard": return ProfileType.Surfboard;
                 case "surge-list": return ProfileType.SurgeList;
                 default: return ProfileType.None;
             }
         }
 
-        public static string KebabCase2PascalCase(string kebabCase)
-        {
-            var words = kebabCase
-                .Split('-')
-                .Select(w => w.Substring(0, 1).ToUpper() + w.Substring(1));
-
-            return String.Join("", words);
-        }
-
         public static Profile Get(string profileName)
         {
-            Environment.GetEnvironmentVariables();
-            var data = Environment.GetEnvironmentVariable(KebabCase2PascalCase(profileName.ToLower()));
+            var data = ProfileFactory.environmentManager.Get(Misc.KebabCase2PascalCase(profileName.ToLower()));
             if (String.IsNullOrEmpty(data)) return null;
 
             var profile = new Profile();

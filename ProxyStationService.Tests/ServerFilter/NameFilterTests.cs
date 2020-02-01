@@ -6,7 +6,7 @@ using ProxyStation.ServerFilter;
 using Xunit;
 using YamlDotNet.RepresentationModel;
 
-namespace ProxyStation.UnitTests.ServerFilter
+namespace ProxyStation.Tests.ServerFilter
 {
     public class NameFilterTests
     {

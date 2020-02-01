@@ -2,9 +2,10 @@
 using Microsoft.Extensions.Logging;
 using ProxyStation.Model;
 using ProxyStation.ProfileParser;
+using ProxyStation.Tests.HttpTrigger;
 using Xunit;
 
-namespace ProxyStation.UnitTests.ProfileParser
+namespace ProxyStation.Tests.Parser
 {
     public class ClashParserTests
     {

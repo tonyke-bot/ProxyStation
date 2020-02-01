@@ -1,12 +1,11 @@
 # ProxyStation
-A proxy servers list management program runs on Azure Functions. Support most of shadowsocks client including Surge, Clash, Shadowrocket, Surfboard.
+A proxy servers list management program runs on Azure Functions. Support most of shadowsocks client including Surge, Clash, Shadowrocket.
 
 ### Demo
 * General Profile: <https://proxy-station.azurewebsites.net/api/train/demo/general>
 * Surge Profile: <https://proxy-station.azurewebsites.net/api/train/demo/surge>
 * Surge List: <https://proxy-station.azurewebsites.net/api/train/demo/surge-list>
 * Clash Profile: <https://proxy-station.azurewebsites.net/api/train/demo/clash>
-* Surfboard Profile: <https://proxy-station.azurewebsites.net/api/train/demo/surfboard>
 
 ### App Supported
 | Alias        | App                                                | As source | As output |
@@ -15,9 +14,6 @@ A proxy servers list management program runs on Azure Functions. Support most of
 | `surge`      | Surge                                              | √         | √         |
 | `surge-list` | Surge(Proxy List)                                  | √         | √         |
 | `clash`      | Clash                                              | √         | √         |
-| `surfboard`  | Surfboard                                          | X         | √         |
-
-* `Surfboard` as input is not supported becasue it's still in beta stage
 
 ### How to Deploy to Azure Functions
 Coming soon.

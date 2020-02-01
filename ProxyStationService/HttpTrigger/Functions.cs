@@ -1,18 +1,24 @@
+﻿using System;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using ProxyStation.ProfileParser;
-using System.Text;
-using System;
 using ProxyStation.Model;
+using ProxyStation.Util;
 
-namespace ProxyStation
+namespace ProxyStation.HttpTrigger
 {
-    public static class GetTrain
+    public static class Functions
     {
+        public static IDownloader Downloader { get; set; } = new Downloader();
+
+        public static IEnvironmentManager EnvironmentManager { get; set; } = new EnvironmentManager();
+
         public static string GetCurrentURL(HttpRequest req) => $"{req.Scheme}://{Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME")}{req.Path}";
 
         [FunctionName("GetTrain")]
@@ -22,6 +28,11 @@ namespace ProxyStation
             string typeName,
             ILogger logger)
         {
+            var templateUrlOrName = req.Query.ContainsKey("template") ? req.Query["template"].ToString() : String.Empty;
+
+            ProfileFactory.SetEnvironmentManager(Functions.EnvironmentManager);
+            TemplateFactory.SetEnvironmentManager(Functions.EnvironmentManager);
+
             var profile = ProfileFactory.Get(profileName);
             if (profile == null) return new NotFoundResult();
 
@@ -36,13 +47,13 @@ namespace ProxyStation
             if (targetProfileParser == null)
             {
                 var userAgent = req.Headers["user-agent"];
-                var probableType = GuessTypeFromUserAgent(userAgent);
+                var probableType = Functions.GuessTypeFromUserAgent(userAgent);
                 targetProfileParser = ParserFactory.GetParser(probableType, logger);
                 logger.LogInformation("Attempt to guess target type from user agent, UserAgent={userAgent}, Result={targetType}", userAgent, targetProfileParser.GetType());
             }
 
             string newProfile;
-            var profileContent = await profile.Download();
+            var profileContent = await profile.Download(Functions.Downloader);
             var fileName = $"{profileName}{targetProfileParser.ExtName()}";
 
             if (profile.AllowDirectAccess && profileParser.GetType() == targetProfileParser.GetType())
@@ -51,6 +62,18 @@ namespace ProxyStation
             }
             else
             {
+                var template = string.Empty;
+
+                if (!String.IsNullOrEmpty(templateUrlOrName) && !templateUrlOrName.StartsWith("https://"))
+                {
+                    templateUrlOrName = TemplateFactory.GetTemplateUrl(templateUrlOrName);
+                }
+
+                if (!String.IsNullOrEmpty(templateUrlOrName) && templateUrlOrName.StartsWith("https://"))
+                {
+                    template = await Functions.Downloader.Download(templateUrlOrName);
+                }
+
                 var servers = profileParser.Parse(profileContent);
                 logger.LogInformation($"Download profile `{profile.Name}` and get {servers.Length} servers");
 
@@ -62,26 +85,32 @@ namespace ProxyStation
                     if (servers.Length == 0) break;
                 }
 
-                IEncodeOptions options = null;
+                EncodeOptions options = null;
                 switch (targetProfileParser)
                 {
                     case SurgeParser surgeParser:
-                        var surgeOptions = new SurgeEncodeOptions();
-                        surgeOptions.ProfileURL = GetCurrentURL(req);
-                        options = surgeOptions;
+                        options = new SurgeEncodeOptions()
+                        {
+                            ProfileURL = Functions.GetCurrentURL(req)
+                        };
                         break;
-
-                    case ClashParser clashParser:
-                        var clashOptions =  new ClashEncodeOptions();
-                        clashOptions.EnhancedMode = req.Query.ContainsKey("enhanced-mode") ? req.Query["enhanced-mode"].ToString() : "";
-                        options = clashOptions;
+                    default:
+                        options = new EncodeOptions();
                         break;
                 }
+                options.Template = template;
 
-                newProfile = targetProfileParser.Encode(servers, options);
+                try
+                {
+                    newProfile = targetProfileParser.Encode(servers, options);
+                }
+                catch (InvalidTemplateException)
+                {
+                    return new BadRequestResult();
+                }
             }
 
-            var result = new FileContentResult(Encoding.UTF8.GetBytes(newProfile), $"{MimeTypes.GetMimeType(fileName)}; charset=UTF-8");
+            var result = new FileContentResult(Encoding.UTF8.GetBytes(newProfile), $"text/plain; charset=UTF-8");
             result.FileDownloadName = fileName;
             return result;
         }
@@ -91,7 +120,6 @@ namespace ProxyStation
             userAgent = userAgent.ToLower();
             if (userAgent.Contains("surge")) return ProfileType.Surge;
             else if (userAgent.Contains("clash")) return ProfileType.Clash;
-            else if (userAgent.Contains("surfboard")) return ProfileType.Surfboard;
             return ProfileType.General;
         }
     }

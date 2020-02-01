@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Web;
@@ -180,7 +179,7 @@ namespace ProxyStation.ProfileParser
             return "ssr://" + WebSafeBase64Encode(Encoding.UTF8.GetBytes(serverInfo + "/?" + String.Join("&", otherInfos)));
         }
 
-        public string Encode(Server[] servers, IEncodeOptions options)
+        public string Encode(Server[] servers, EncodeOptions options)
         {
             var sb = new StringBuilder();
             foreach (var server in servers)
@@ -197,8 +196,6 @@ namespace ProxyStation.ProfileParser
             }
             return Convert.ToBase64String(Encoding.ASCII.GetBytes(sb.ToString()));
         }
-
-        public string Encode(Server[] servers) => Encode(servers, null);
 
         private static string WebSafeBase64Encode(byte[] plainText)
         {

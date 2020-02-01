@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using ProxyStation.Model;
 
 namespace ProxyStation.ProfileParser
@@ -15,11 +12,14 @@ namespace ProxyStation.ProfileParser
             this.logger = logger;
         }
 
+        public bool ValidateTemplate(string template)
+        {
+            return true;
+        }
+
         public Server[] Parse(string profile) => new SurgeParser(logger).ParseProxyList(profile);
 
-        public string Encode(Server[] servers, IEncodeOptions options) => new SurgeParser(logger).EncodeProxyList(servers);
-
-        public string Encode(Server[] servers) => Encode(servers, null);
+        public string Encode(Server[] servers, EncodeOptions options) => new SurgeParser(logger).EncodeProxyList(servers);
 
         public string ExtName() => "";
     }

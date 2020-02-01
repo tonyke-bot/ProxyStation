@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 using ProxyStation.ServerFilter;
+using ProxyStation.Util;
 
 namespace ProxyStation.Model
 {
@@ -18,18 +17,9 @@ namespace ProxyStation.Model
 
         public List<BaseFilter> Filters { get; set; } = new List<BaseFilter>();
 
-        public async Task<string> Download()
+        public async Task<string> Download(IDownloader downloader)
         {
-            var request = WebRequest.Create(Source);
-            request.Headers.Set("User-Agent", "proxy-station/1.0.0");
-            request.Timeout = 10 * 1000;  // 10s
-
-            using (var response = await request.GetResponseAsync())
-            using (var dataStream = response.GetResponseStream())
-            {
-                var reader = new StreamReader(dataStream);
-                return reader.ReadToEnd();
-            }
+            return await downloader.Download(this.Source);
         }
     }
 }

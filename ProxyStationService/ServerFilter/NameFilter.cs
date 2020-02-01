@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Microsoft.Extensions.Logging;
+﻿using System.Collections.Generic;
 using ProxyStation.Model;
 using ProxyStation.Util;
 using YamlDotNet.RepresentationModel;
-using YamlDotNet.Serialization;
 
 namespace ProxyStation.ServerFilter
 {

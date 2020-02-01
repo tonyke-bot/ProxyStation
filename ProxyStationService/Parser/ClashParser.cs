@@ -4,15 +4,15 @@ using System.IO;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using ProxyStation.Model;
+using ProxyStation.ProfileParser.Template;
 using ProxyStation.Util;
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 
 namespace ProxyStation.ProfileParser
 {
-    public class ClashEncodeOptions : IEncodeOptions
+    public class ClashEncodeOptions : EncodeOptions
     {
-        public string EnhancedMode { get; set; }
     }
 
     public class ClashParser : IProfileParser
@@ -52,41 +52,31 @@ namespace ProxyStation.ProfileParser
             return servers.ToArray();
         }
 
-        public string Encode(Server[] servers, IEncodeOptions options)
+        public string Encode(Server[] servers, EncodeOptions options)
         {
-            var dataDict = new Dictionary<string, object>()
-            {
-                { "port", "7890" },
-                { "socks-port", "7891" },
-                { "allow-lan", "true" },
-                { "mode", "Rule" },
-                { "log-level", "info" },
-                { "external-controller", "127.0.0.1:9090" },
-            };
+            var template = String.IsNullOrEmpty(options.Template) ? Clash.Template : options.Template;
+            var deserializer = new DeserializerBuilder().Build();
+            var result = deserializer.Deserialize<object>(template);
 
-            var dnsSettings = new Dictionary<string, object>()
+            var rootElement = result as Dictionary<object, object>;
+            if (rootElement == null)
             {
-                { "enable", true },
-                { "ipv6", false },
-                { "listen", "0.0.0.0:53" },
-                { "nameserver", new string[]
-                    {
-                        "117.50.10.10",
-                        "119.29.29.29",
-                        "223.5.5.5",
-                        "tls://dns.rubyfish.cn:853",
-                    }
-                },
-                { "fallback", new string[]
-                    {
-                        "tls://1.1.1.1:853",
-                        "tls://1.0.0.1:853",
-                        "tls://dns.google:853",
-                    }
-                },
-            };
-            dataDict.Add("dns", dnsSettings);
+                throw new InvalidTemplateException();
+            }
 
+            var proxyGroupsElement = rootElement.GetValueOrDefault("Proxy Group") as List<object>;
+            if (proxyGroupsElement == null)
+            {
+                throw new InvalidTemplateException();
+            }
+
+            var proxyGroupElement = proxyGroupsElement.ElementAtOrDefault(0) as Dictionary<object, object>;
+            if (proxyGroupElement == null)
+            {
+                throw new InvalidTemplateException();
+            }
+
+            // template modification
             var proxySettings = servers.Select(s =>
             {
                 switch (s)
@@ -134,47 +124,14 @@ namespace ProxyStation.ProfileParser
 
                 return null as object;
             });
-            dataDict.Add("Proxy", proxySettings);
+            rootElement.Add("Proxy", proxySettings);
 
-            var proxyGroup = new List<Dictionary<string, object>>()
-            {
-                new Dictionary<string, object>()
-                {
-                    { "name", "Proxy" },
-                    { "type", "url-test" },
-                    { "url", "http://www.gstatic.com/generate_204" },
-                    { "interval", 300 },
-                    { "proxies", servers.Select(s => s.Name).ToArray() },
-                },
-                new Dictionary<string, object>()
-                {
-                    { "name", "Default" },
-                    { "type", "select" },
-                    { "proxies", new string[] { "Proxy", "DIRECT" } },
-                },
-                new Dictionary<string, object>()
-                {
-                    { "name", "AdBlock" },
-                    { "type", "select" },
-                    { "proxies", new string[] { "REJECT", "DIRECT", "Proxy" } },
-                },
-            };
-            dataDict.Add("Proxy Group", proxyGroup);
-
-            if (options is ClashEncodeOptions) {
-                var clashOptions = options as ClashEncodeOptions;
-                if (!String.IsNullOrWhiteSpace(clashOptions.EnhancedMode)) {
-                    dnsSettings.Add("enhanced-mode", clashOptions.EnhancedMode.ToLower());
-                }
-            }
+            var proxyNames = proxySettings.Select(s => (s as Dictionary<string, object>)["name"]).ToArray();
+            proxyGroupElement["proxies"] = proxyNames;
 
             var serializer = new SerializerBuilder().Build();
-            var profile = serializer.Serialize(dataDict);
-
-            return profile + ProfileSnippet.ClashRule;
+            return serializer.Serialize(rootElement);
         }
-
-        public string Encode(Server[] servers) => Encode(servers, null);
 
         public string ExtName()
         {

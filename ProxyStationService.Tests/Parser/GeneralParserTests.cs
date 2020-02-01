@@ -4,7 +4,7 @@ using ProxyStation.Model;
 using ProxyStation.ProfileParser;
 using Xunit;
 
-namespace ProxyStation.UnitTests.ProfileParser
+namespace ProxyStation.Tests.Parser
 {
     public class GeneralParserTests
     {

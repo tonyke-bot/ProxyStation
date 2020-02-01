@@ -1,10 +1,12 @@
-namespace ProxyStation.ProfileParser
+namespace ProxyStation.ProfileParser.Template
 {
-    public static partial class ProfileSnippet
+    public static class Surge
     {
-        public const string SurgeProxyPlaceHolder = "# === PROXY SETUP PLACEHOLDER ===";
-        
-        public const string SurgeCommon = @"[General]
+        public const string ServerListPlaceholder = "{% SERVER_LIST %}";
+
+        public const string ServerNamesPlaceholder = "{% SERVER_NAMES %}";
+
+        public readonly static string Template = $@"[General]
 loglevel = notify
 dns-server = system, 223.5.5.5, 223.6.6.6, 8.8.8.8, 8.8.4.4
 skip-proxy = 127.0.0.1, 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12, 100.64.0.0/10, 17.0.0.0/8, localhost, *.local, *.crashlytics.com
@@ -26,9 +28,14 @@ hide-crashlytics-request = true
 hide-udp = false
 use-keyword-filter = false
 
-"
-+ SurgeProxyPlaceHolder
-+ @"
+[Proxy]
+{Surge.ServerListPlaceholder}
+
+[Proxy Group]
+Default = select, Proxy, DIRECT
+Proxy = url-test, {Surge.ServerNamesPlaceholder}, url=http://captive.apple.com, interval=600, tolerance=200
+AdBlock = select, REJECT, REJECT-TINYGIF, DIRECT, Default
+
 [Rule]
 USER-AGENT,AppStore*,Default
 USER-AGENT,com.apple.appstored*,Default

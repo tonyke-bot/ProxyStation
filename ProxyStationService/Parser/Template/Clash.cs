@@ -1,6 +1,46 @@
-namespace ProxyStation.ProfileParser {
-    public static partial class ProfileSnippet {
-        public const string ClashRule = @"
+namespace ProxyStation.ProfileParser.Template
+{
+    public static partial class Clash
+    {
+        public const string Template = @"port: 7890
+socks-port: 7891
+allow-lan: true
+bind-address: '*'
+mode: Rule
+log-level: info
+external-controller: 127.0.0.1:9090
+dns:
+  enable: true
+  ipv6: false
+  listen: 0.0.0.0:53
+  nameserver:
+  - 117.50.10.10
+  - 119.29.29.29
+  - 223.5.5.5
+  - tls://dns.rubyfish.cn:853
+  fallback:
+  - tls://1.1.1.1:853
+  - tls://1.0.0.1:853
+  - tls://dns.google:853
+
+Proxy Group:
+- name: Proxy
+  type: url-test
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+  proxies: []
+- name: Default
+  type: select
+  proxies:
+  - Proxy
+  - DIRECT
+- name: AdBlock
+  type: select
+  proxies:
+  - REJECT
+  - DIRECT
+  - Proxy
+
 Rule:
 - DOMAIN-SUFFIX,edgedatg.com,Proxy
 - DOMAIN-SUFFIX,go.com,Proxy

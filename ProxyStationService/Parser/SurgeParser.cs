@@ -5,10 +5,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using ProxyStation.Model;
+using ProxyStation.ProfileParser.Template;
 
 namespace ProxyStation.ProfileParser
 {
-    public class SurgeEncodeOptions : IEncodeOptions
+    public class SurgeEncodeOptions : EncodeOptions
     {
         public string ProfileURL { get; set; }
     }
@@ -29,6 +30,16 @@ namespace ProxyStation.ProfileParser
                 RegexOptions.Compiled);
 
         static string TrimPrefix(string str, string prefix) => str.StartsWith(prefix) ? str.Substring(prefix.Length) : str;
+
+        public bool ValidateTemplate(string template)
+        {
+            if (String.IsNullOrEmpty(template))
+            {
+                return true;
+            }
+
+            return template.Contains(Surge.ServerListPlaceholder) && template.Contains(Surge.ServerNamesPlaceholder);
+        }
 
         public Server[] ParseProxyList(string profile)
         {
@@ -123,36 +134,27 @@ namespace ProxyStation.ProfileParser
             return ParseProxyList(plainProxies);
         }
 
-        public string Encode(Server[] servers, IEncodeOptions options)
+        public string Encode(Server[] servers, EncodeOptions options)
         {
-            var stringBuilder = new StringBuilder();
+            if (!this.ValidateTemplate(options.Template))
+            {
+                throw new InvalidTemplateException();
+            }
+
+            var template = String.IsNullOrEmpty(options.Template) ? Surge.Template : options.Template;
+
             if (options is SurgeEncodeOptions)
             {
                 var surgeOptions = options as SurgeEncodeOptions;
                 if (!String.IsNullOrEmpty(surgeOptions.ProfileURL))
                 {
-                    stringBuilder.AppendLine($"#!MANAGED-CONFIG {surgeOptions.ProfileURL} interval=43200");
-                    stringBuilder.AppendLine();
+                    template = $"#!MANAGED-CONFIG {surgeOptions.ProfileURL} interval=43200\n" + template;
                 }
             }
 
-            var proxySectionBuilder = new StringBuilder();            
-            proxySectionBuilder.AppendLine("[Proxy]");
-            proxySectionBuilder.AppendLine(new SurgeListParser(logger).Encode(servers));
-
-            var proxies = servers.Select(s => s.Name).ToList();
-            if (proxies.Count == 0) proxies.Add("DIRECT");
-            var proxyNames = String.Join(", ", proxies);
-            proxySectionBuilder.AppendLine("[Proxy Group]");
-            proxySectionBuilder.AppendLine("Default = select, Proxy, DIRECT");
-            proxySectionBuilder.AppendLine($"Proxy = url-test, {proxyNames}, url=http://captive.apple.com, interval=600, tolerance=200");
-            proxySectionBuilder.AppendLine("AdBlock = select, REJECT, REJECT-TINYGIF, DIRECT, Default");
-
-            stringBuilder.Append(ProfileSnippet.SurgeCommon.Replace(ProfileSnippet.SurgeProxyPlaceHolder, proxySectionBuilder.ToString()));
-            return stringBuilder.ToString();
+            return template.Replace(Surge.ServerListPlaceholder, EncodeProxyList(servers))
+                .Replace(Surge.ServerNamesPlaceholder, String.Join(", ", servers.Select(s => s.Name)));
         }
-
-        public string Encode(Server[] servers) => Encode(servers, null);
 
         public string EncodeProxyList(Server[] servers)
         {
