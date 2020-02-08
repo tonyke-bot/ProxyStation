@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Logging;
 using ProxyStation.Model;
 
@@ -138,10 +139,11 @@ namespace ProxyStation.ProfileParser
             return server;
         }
 
-        private string EncodeShadowsocksServer(ShadowsocksServer server)
+        private string EncodeShadowsocksServer(ShadowsocksServer server, string groupName = null)
         {
             var userInfo = WebSafeBase64Encode(Encoding.UTF8.GetBytes($"{server.Method}:{server.Password}"));
             var uri = new UriBuilder();
+            var queryBuilder = new QueryBuilder();
 
             uri.UserName = userInfo;
             uri.Host = server.Host;
@@ -149,17 +151,23 @@ namespace ProxyStation.ProfileParser
             uri.Path = "/";
             uri.Fragment = HttpUtility.UrlEncode(server.Name).Replace("+", "%20");
             uri.Scheme = "ss";
+
             if (server.PluginType == PluginType.SimpleObfs)
             {
                 var options = server.PluginOptions as SimpleObfsPluginOptions;
                 var obfsHost = String.IsNullOrEmpty(options.Host) ? Constant.ObfsucationHost : options.Host;
-                uri.Query = "plugin=obfs-local" + HttpUtility.UrlEncode($";obfs={options.Mode};obfs-host={obfsHost}");
+                queryBuilder.Add("plugin", $"obfs-local;obfs={options.Mode};obfs-host={obfsHost}");
             }
+
+            if (!String.IsNullOrEmpty(groupName))
+                queryBuilder.Add("name", WebSafeBase64Encode(Encoding.UTF8.GetBytes(groupName)));
+
+            uri.Query = queryBuilder.ToString();
 
             return uri.ToString();
         }
 
-        private string EncodeShadowsocksRServer(ShadowsocksRServer server)
+        private string EncodeShadowsocksRServer(ShadowsocksRServer server, string groupName = null)
         {
             // base64(host:port:protocol:method:obfs:base64pass/?group=base64group)
             var serverInfo = $"{server.Host}:{server.Port}:{server.Protocol}:{server.Method}:{server.Obfuscation}";
@@ -175,6 +183,8 @@ namespace ProxyStation.ProfileParser
                 otherInfos.Add($"udpport={server.UDPPort}");
             if (server.UDPOverTCP)
                 otherInfos.Add("uot=1");
+            if (!String.IsNullOrEmpty(groupName))
+                otherInfos.Add("group=" + WebSafeBase64Encode(Encoding.UTF8.GetBytes(groupName)));
 
             return "ssr://" + WebSafeBase64Encode(Encoding.UTF8.GetBytes(serverInfo + "/?" + String.Join("&", otherInfos)));
         }
@@ -182,15 +192,18 @@ namespace ProxyStation.ProfileParser
         public string Encode(Server[] servers, EncodeOptions options)
         {
             var sb = new StringBuilder();
+            sb.AppendLine($"REMARKS={options.ProfileName}");
+            sb.AppendLine("");
+
             foreach (var server in servers)
             {
                 switch (server)
                 {
                     case ShadowsocksServer ss:
-                        sb.AppendLine(EncodeShadowsocksServer(ss));
+                        sb.AppendLine(EncodeShadowsocksServer(ss, options.ProfileName));
                         break;
                     case ShadowsocksRServer ssr:
-                        sb.AppendLine(EncodeShadowsocksRServer(ssr));
+                        sb.AppendLine(EncodeShadowsocksRServer(ssr, options.ProfileName));
                         break;
                 }
             }

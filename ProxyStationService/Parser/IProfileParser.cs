@@ -6,6 +6,12 @@ namespace ProxyStation.ProfileParser
     public class EncodeOptions
     {
         /// <summary>
+        /// Name of the profile to be encoded
+        /// </summary>
+        /// <value></value>
+        public string ProfileName { get; set; }
+
+        /// <summary>
         /// The template to be used to generate a profile
         /// </summary>
         /// <value></value>
@@ -36,8 +42,8 @@ namespace ProxyStation.ProfileParser
         string ExtName();
     }
 
-    public class InvalidTemplateException : Exception {
-        
+    public class InvalidTemplateException : Exception
+    {
     }
 
     public class ParseException : Exception

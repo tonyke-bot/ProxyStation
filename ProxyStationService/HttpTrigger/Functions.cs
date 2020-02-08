@@ -85,7 +85,7 @@ namespace ProxyStation.HttpTrigger
                     if (servers.Length == 0) break;
                 }
 
-                EncodeOptions options = null;
+                EncodeOptions options;
                 switch (targetProfileParser)
                 {
                     case SurgeParser surgeParser:
@@ -99,6 +99,7 @@ namespace ProxyStation.HttpTrigger
                         break;
                 }
                 options.Template = template;
+                options.ProfileName = profile.Name;
 
                 try
                 {
