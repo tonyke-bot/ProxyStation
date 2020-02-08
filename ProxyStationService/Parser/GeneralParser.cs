@@ -19,7 +19,7 @@ namespace ProxyStation.ProfileParser
 
         public Server[] Parse(string profile)
         {
-            var bytes = Convert.FromBase64String(profile.Trim());
+            var bytes = WebSafeBase64Decode(profile.Trim());
             var plain = Encoding.UTF8.GetString(bytes);
             var URIs = plain.Split('\n');
             List<Server> servers = new List<Server>();
