@@ -162,7 +162,7 @@ namespace ProxyStation.ProfileParser
             if (!String.IsNullOrEmpty(groupName))
                 queryBuilder.Add("name", WebSafeBase64Encode(Encoding.UTF8.GetBytes(groupName)));
 
-            uri.Query = queryBuilder.ToString();
+            uri.Query = queryBuilder.ToString().Replace(";", "%3B");
 
             return uri.ToString();
         }
