@@ -4,11 +4,11 @@ namespace ProxyStation.ServerFilter
     {
         public static BaseFilter GetFilter(string name)
         {
-            switch (name)
+            return name switch
             {
-                case "name": return new NameFilter();
-                default: return null;
-            }
+                "name" => new NameFilter(),
+                _ => null,
+            };
         }
     }
 }

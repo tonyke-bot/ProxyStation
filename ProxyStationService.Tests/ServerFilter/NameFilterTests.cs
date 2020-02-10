@@ -4,6 +4,7 @@ using ProxyStation.Model;
 using ProxyStation.ProfileParser;
 using ProxyStation.ServerFilter;
 using Xunit;
+using Xunit.Abstractions;
 using YamlDotNet.RepresentationModel;
 
 namespace ProxyStation.Tests.ServerFilter
@@ -14,8 +15,11 @@ namespace ProxyStation.Tests.ServerFilter
 
         Server[] servers;
 
-        public NameFilterTests()
+        ILogger logger;
+
+        public NameFilterTests(ITestOutputHelper output)
         {
+            logger = output.BuildLogger();
             filter = new NameFilter();
             servers = new Server[]{
                 new ShadowsocksServer() { Name = "goodserver 1" },
@@ -43,7 +47,7 @@ matching: prefix
             Assert.Equal(NameFilterMatching.HasPrefix, filter.Matching);
             Assert.Equal("goodserver", filter.Keyword);
 
-            var filtered = filter.Do(servers);
+            var filtered = filter.Do(servers, this.logger);
             Assert.Equal(3, filtered.Length);
         }
 
@@ -64,7 +68,7 @@ matching: prefix
             Assert.Equal(NameFilterMatching.HasPrefix, filter.Matching);
             Assert.Equal("badserver", filter.Keyword);
 
-            var filtered = filter.Do(servers);
+            var filtered = filter.Do(servers, this.logger);
             Assert.Equal(3, filtered.Length);
         }
 
@@ -85,7 +89,7 @@ matching: contains
             Assert.Equal(NameFilterMatching.Contains, filter.Matching);
             Assert.Equal("server ", filter.Keyword);
 
-            var filtered = filter.Do(servers);
+            var filtered = filter.Do(servers, this.logger);
             Assert.Equal(5, filtered.Length);
         }
     }

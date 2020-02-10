@@ -1,11 +1,13 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using ProxyStation.ServerFilter;
 using ProxyStation.Util;
 
 namespace ProxyStation.Model
 {
-    public class Profile
+    public class Profile : IEquatable<Profile>
     {
         public string Source { get; set; }
 
@@ -20,6 +22,11 @@ namespace ProxyStation.Model
         public async Task<string> Download(IDownloader downloader)
         {
             return await downloader.Download(this.Source);
+        }
+
+        public bool Equals([AllowNull] Profile other)
+        {
+            return other != null && other.Name == this.Name;
         }
     }
 }

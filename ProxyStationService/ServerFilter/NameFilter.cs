@@ -15,26 +15,20 @@ namespace ProxyStation.ServerFilter
     public class NameFilter : BaseFilter
     {
         public string Keyword { get; set; }
+
         public NameFilterMatching Matching { get; set; }
 
-        public override Server[] Do(Server[] servers)
+        public override bool ShouldKeep(Server server)
         {
-            var newServers = new List<Server>();
-            var match = true;
-
-            foreach (var server in servers)
+            var match = this.Matching switch
             {
-                switch (Matching)
-                {
-                    case NameFilterMatching.HasPrefix: match = server.Name.StartsWith(Keyword); break;
-                    case NameFilterMatching.HasSuffix: match = server.Name.EndsWith(Keyword); break;
-                    case NameFilterMatching.Contains: match = server.Name.Contains(Keyword); break;
-                }
+                NameFilterMatching.HasPrefix => server.Name.StartsWith(Keyword),
+                NameFilterMatching.HasSuffix => server.Name.EndsWith(Keyword),
+                NameFilterMatching.Contains => server.Name.Contains(Keyword),
+                _ => throw new System.NotImplementedException(),
+            };
 
-                if (match == (Mode == FilterMode.WhiteList)) newServers.Add(server);
-            }
-
-            return newServers.ToArray();
+            return match == (Mode == FilterMode.WhiteList);
         }
 
         public override void LoadOptions(YamlNode node)

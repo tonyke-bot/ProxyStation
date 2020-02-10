@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using ProxyStation.Model;
 using ProxyStation.ServerFilter;
 using ProxyStation.Util;
@@ -19,19 +18,20 @@ namespace ProxyStation
 
         public static ProfileType ParseProfileTypeName(string profileType)
         {
-            switch (profileType)
+            return (profileType.ToLower()) switch
             {
-                case "general": return ProfileType.General;
-                case "surge": return ProfileType.Surge;
-                case "clash": return ProfileType.Clash;
-                case "surge-list": return ProfileType.SurgeList;
-                default: return ProfileType.None;
-            }
+                "general" => ProfileType.General,
+                "surge" => ProfileType.Surge,
+                "clash" => ProfileType.Clash,
+                "surge-list" => ProfileType.SurgeList,
+                "alias" => ProfileType.Alias,
+                _ => ProfileType.None,
+            };
         }
 
         public static Profile Get(string profileName)
         {
-            var data = ProfileFactory.environmentManager.Get(Misc.KebabCase2PascalCase(profileName.ToLower()));
+            var data = ProfileFactory.environmentManager.Get(profileName);
             if (String.IsNullOrEmpty(data)) return null;
 
             var profile = new Profile();

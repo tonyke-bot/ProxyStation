@@ -7,26 +7,28 @@ namespace ProxyStation.ProfileParser
     {
         public static IProfileParser GetParser(ProfileType type, ILogger logger)
         {
-            switch (type)
+            return type switch
             {
-                case ProfileType.General: return new GeneralParser(logger);
-                case ProfileType.Surge: return new SurgeParser(logger);
-                case ProfileType.SurgeList: return new SurgeListParser(logger);
-                case ProfileType.Clash: return new ClashParser(logger);
-                default: return null;
-            }
+                ProfileType.Original => new NullParser(),
+                ProfileType.General => new GeneralParser(logger),
+                ProfileType.Surge => new SurgeParser(logger),
+                ProfileType.SurgeList => new SurgeListParser(logger),
+                ProfileType.Clash => new ClashParser(logger),
+                _ => null,
+            };
         }
 
         public static IProfileParser GetParser(string type, ILogger logger)
         {
-            switch (type)
+            return (type.ToLower()) switch
             {
-                case "general": return GetParser(ProfileType.General, logger);
-                case "surge": return GetParser(ProfileType.Surge, logger);
-                case "surge-list": return GetParser(ProfileType.SurgeList, logger);
-                case "clash": return GetParser(ProfileType.Clash, logger);
-                default: return null;
-            }
+                "original" => GetParser(ProfileType.Original, logger),
+                "general" => GetParser(ProfileType.General, logger),
+                "surge" => GetParser(ProfileType.Surge, logger),
+                "surge-list" => GetParser(ProfileType.SurgeList, logger),
+                "clash" => GetParser(ProfileType.Clash, logger),
+                _ => null,
+            };
         }
     }
 }

@@ -189,5 +189,51 @@ RULE-SET,LAN,DIRECT
 GEOIP,CN,DIRECT
 FINAL,Default,dns-failed
 ";
+
+
+        public readonly static string SurgeProfile2 = @"
+[General]
+loglevel = notify
+bypass-system = true
+skip-proxy = 127.0.0.0/24,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,100.64.0.0/10,17.0.0.0/8,localhost,*.local,169.254.0.0/16,224.0.0.0/4,240.0.0.0/4
+bypass-tun = 127.0.0.0/24,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,100.64.0.0/10,17.0.0.0/8,localhost,*.local,169.254.0.0/16,224.0.0.0/4,240.0.0.0/4
+dns-server = system, 114.114.114.114, 119.29.29.29, 223.5.5.5, 8.8.8.8, 8.8.4.4
+replica = false
+enhanced-mode-by-rule = true
+ipv6 = false
+exclude-simple-hostnames = true
+test-timeout = 5
+allow-wifi-access = false
+
+[Replica]
+hide-apple-request=true
+
+[Proxy]
+香港 BGP 1 = custom, best-server.com, 155, rc4-md5, asdads, http://example.com/, udp-relay=true
+香港 BGP 2 = custom, best-server.com, 155, rc4-md5, asdads, http://example.com/, udp-relay=true
+香港 BGP 中继 1 = custom, best-server.com, 155, rc4-md5, asdads, http://example.com/, udp-relay=true
+香港 BGP 中继 2 = custom, best-server.com, 155, rc4-md5, asdads, http://example.com/, udp-relay=true
+香港高级 BGP 中继 1 = custom, best-server.com, 155, rc4-md5, asdads, http://example.com/, udp-relay=true
+香港高级 BGP 中继 2 = custom, best-server.com, 155, rc4-md5, asdads, http://example.com/, udp-relay=true
+日本 BGP 1 = custom, best-server.com, 155, rc4-md5, asdads, http://example.com/, udp-relay=true
+日本 BGP 2 = custom, best-server.com, 155, rc4-md5, asdads, http://example.com/, udp-relay=true
+日本 BGP 中继 1 = custom, best-server.com, 155, rc4-md5, asdads, http://example.com/, udp-relay=true
+日本 BGP 中继 2 = custom, best-server.com, 155, rc4-md5, asdads, http://example.com/, udp-relay=true
+日本高级 BGP 中继 1 = custom, best-server.com, 155, rc4-md5, asdads, http://example.com/, udp-relay=true
+日本高级 BGP 中继 2 = custom, best-server.com, 155, rc4-md5, asdads, http://example.com/, udp-relay=true
+
+[Proxy Group]
+AUTO = url-test, 香港高级 BGP 中继 1, 香港高级 BGP 中继 2, 香港高级 BGP 中继 3, 香港高级 BGP 中继 4, 香港高级 BGP 中继 5, 香港高级 BGP 中继 6, 香港高级 BGP 中继 7, 香港高级 BGP 中继 8, 香港高级 BGP 中继 9, 香港高级 BGP 中继 10, 香港高级 BGP 中继 11, 香港高级 BGP 中继 12, 香港高级 BGP 中继 13, 香港高级 BGP 中继 14, 香港高级 BGP 中继 15, 香港高级 BGP 中继 16, 香港 BGP 中继 1, 香港 BGP 中继 2, 香港 BGP 中继 3, 香港 BGP 中继 4, 香港 BGP 中继 5, 香港 BGP 中继 6, 香港 BGP 中继 7, 香港 BGP 中继 8, 香港 BGP 中继 9, 香港 BGP 中继 10, 香港 BGP 中继 11, 香港 BGP 中继 12, 香港 BGP 中继 13, 香港 BGP 中继 14, 香港 BGP 中继 15, 香港 BGP 中继 16, 香港标准 BGP 中继 1, 香港标准 BGP 中继 2, 香港标准 BGP 中继 3, 香港标准 BGP 中继 4, 香港标准 BGP 中继 5, url=http://www.gstatic.com/generate_204, interval=180, timeout=1, tolerance=100
+RIXCLOUD = select, AUTO, DIRECT, 香港高级 BGP 中继 1, 香港高级 BGP 中继 2, 香港高级 BGP 中继 3, 香港高级 BGP 中继 4, 香港高级 BGP 中继 5, 香港高级 BGP 中继 6, 香港高级 BGP 中继 7, 香港高级 BGP 中继 8, 香港高级 BGP 中继 9, 香港高级 BGP 中继 10, 香港高级 BGP 中继 11, 香港高级 BGP 中继 12, 香港高级 BGP 中继 13, 香港高级 BGP 中继 14, 香港高级 BGP 中继 15, 香港高级 BGP 中继 16, 香港 BGP 中继 1, 香港 BGP 中继 2, 香港 BGP 中继 3, 香港 BGP 中继 4, 香港 BGP 中继 5, 香港 BGP 中继 6, 香港 BGP 中继 7, 香港 BGP 中继 8, 香港 BGP 中继 9, 香港 BGP 中继 10, 香港 BGP 中继 11, 香港 BGP 中继 12, 香港 BGP 中继 13, 香港 BGP 中继 14, 香港 BGP 中继 15, 香港 BGP 中继 16, 香港标准 BGP 中继 1, 香港标准 BGP 中继 2, 香港标准 BGP 中继 3, 香港标准 BGP 中继 4, 香港标准 BGP 中继 5
+
+[Rule]
+GEOIP,CN,DIRECT
+FINAL,RIXCLOUD,dns-failed
+
+";
+
+        public readonly static string SurgeListProfile2 = @"香港高级 BGP 中继 1 = ss, best-server.com, 155, encrypt-method=rc4-md5, password=asdads, udp-relay=true
+香港高级 BGP 中继 2 = ss, best-server.com, 155, encrypt-method=rc4-md5, password=asdads, udp-relay=true
+";
     }
 }

@@ -8,12 +8,12 @@ A proxy servers list management program runs on Azure Functions. Support most of
 * Clash Profile: <https://proxy-station.azurewebsites.net/api/train/demo/clash>
 
 ### App Supported
-| Alias        | App                                                | As source | As output |
-|:------------:|:--------------------------------------------------:|:---------:|:---------:|
-| `general`    | Shadowrocket<br>Shadowsocks<br>ShadowsocksR<br>... | √         | √         |
-| `surge`      | Surge                                              | √         | √         |
-| `surge-list` | Surge(Proxy List)                                  | √         | √         |
-| `clash`      | Clash                                              | √         | √         |
+| Alias        | App                                                                      | As source | As output |
+|:------------:|:------------------------------------------------------------------------:|:---------:|:---------:|
+| `general`    | Shadowrocket<br>Shadowsocks<br>ShadowsocksR<br>Quantumult<br>QuantumultX | √         | √         |
+| `surge`      | Surge                                                                    | √         | √         |
+| `surge-list` | Surge(Proxy List)                                                        | √         | √         |
+| `clash`      | Clash                                                                    | √         | √         |
 
 ### How to Deploy to Azure Functions
 Coming soon.
@@ -28,8 +28,9 @@ The key name of the variable is profile name, the value is a structured JSON str
 {
     "name": "<string, name of profile>",
     "source": "<string, the url to source profile>",
-    "type": "<string, the type of source profile, available values seen `alias`>",
-    "allowDirectAccess:": "<boolean, if true and when target and source type are the same, the function will return un-processed profile>",
+    "type": "<string, the type of source profile, available values: general/surge/surge-list/clash/alias>",
+    
+    "allowDirectAccess:": "<boolean, if true and when target and source type are the same, the function will return un-processed profile. Ignored when type is alias>",
     "filters": [ // filters are diabled when allowDirectAccess is enabled
         {
             "name": "<string, filter name>",
@@ -39,21 +40,31 @@ The key name of the variable is profile name, the value is a structured JSON str
         ...
     ]
 }
+
+// There is one special case that allows you refer to another profile
+{
+    "name": "<string, name of profile>",
+    "source": "<string, reference profile name>",
+    "type": "alias"
+}
 ```
 
 ### API
 
 #### Get Built-in Profile
-`GET /api/train/{profile-name}/{output?}`
+`GET /api/train/{profile-name}/{output?}?template={templateUrlOrName}`
 
 Description:
 Developer can pre-define some profile sources before deploy to *Azure Functions*.
 Invoking this API will cause function to retrive profile from source accordingly,
 parse the source and format to specific format according to argument `output`.
 
+Query:
+* `templateUrlOrName` is a url to custom template or pre-defined name in environment variables table. 
+
 Argument:
 * `profile-name` is pre-defined name of profile source
-* `output` is the type of target profile, if omitted, will be guessed from user-agent.
+* `output` is the type of target profile, if omitted, will be inferred from user-agent. If `output = original` and `allowDirectAccess` is enabled for this profile, service will return original content downloading from source url. 
 
 
 ### Supported Filters

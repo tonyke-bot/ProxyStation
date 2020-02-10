@@ -7,5 +7,7 @@ namespace ProxyStation.Model
         Surge,
         SurgeList,
         Clash,
+        Original,
+        Alias,
     }
 }
