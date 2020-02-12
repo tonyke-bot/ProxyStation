@@ -14,7 +14,7 @@ A proxy servers list management program runs on Azure Functions. Support most of
 
 ### App Supported
 | Alias               | App                                                       | As source | As output |
-|:------------------ :|:---------------------------------------------------------:|:---------:|:---------:|
+|:-------------------:|:---------------------------------------------------------:|:---------:|:---------:|
 | `general`           | Shadowrocket<br>Shadowsocks<br>ShadowsocksR<br>Quantumult | √         | √         |
 | `surge`             | Surge                                                     | √         | √         |
 | `surge-list`        | Surge(Proxy List)                                         | √         | √         |
