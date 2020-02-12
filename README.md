@@ -1,4 +1,7 @@
 # ProxyStation
+![Build Stauts](https://github.com/THaGKI9/ProxyStation/workflows/CI%20Test/badge.svg)
+[![codecov](https://codecov.io/gh/THaGKI9/ProxyStation/branch/master/graph/badge.svg)](https://codecov.io/gh/THaGKI9/ProxyStation)
+
 A proxy servers list management program runs on Azure Functions. Support most of shadowsocks client including Surge, Clash, Shadowrocket.
 
 ### Demo

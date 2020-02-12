@@ -1,4 +1,4 @@
-name: .NET Core
+name: CI Test
 
 on: [push]
 
@@ -9,10 +9,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.100
       
     - name: Test
-      run: dotnet test
+      run:  dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+
+    - name: Upload coverage to Codecov  
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
