@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using ProxyStation.Model;
 using ProxyStation.ProfileParser.Template;
+using ProxyStation.Util;
 
 namespace ProxyStation.ProfileParser
 {
@@ -41,10 +42,12 @@ namespace ProxyStation.ProfileParser
             return template.Contains(Surge.ServerListPlaceholder) && template.Contains(Surge.ServerNamesPlaceholder);
         }
 
-        public Server[] ParseProxyList(string profile)
+        public Server[] ParseProxyList(string profile) => this.ParseProxyList(profile.Trim().Split("\n"));
+
+        public Server[] ParseProxyList(IEnumerable<string> plainProxies)
         {
             var servers = new List<Server>();
-            var plainProxies = profile.Trim().Split("\n");
+
             foreach (var proxy in plainProxies)
             {
                 var trimed = proxy.Trim();
@@ -115,36 +118,19 @@ namespace ProxyStation.ProfileParser
 
                 servers.Add(server);
             }
-
             return servers.ToArray();
         }
 
         public Server[] Parse(string profile)
         {
-            var servers = new List<Server>();
+            var properties = Misc.ParsePropertieFile(profile);
 
-            var proxyStartPos = -1;
-            var proxyEndPos = -1;
-            foreach (Match match in profileSectionRegex.Matches(profile))
+            var plainProxies = properties.GetValueOrDefault("Proxy");
+            if (plainProxies == null)
             {
-                if (match.Groups[1].Value.ToLower() == "proxy")
-                {
-                    proxyStartPos = match.Index + match.Length;
-                    continue;
-                }
-
-                if (proxyStartPos != -1)
-                {
-                    proxyEndPos = match.Index - 1;
-                    break;
-                }
-            }
-            if (proxyStartPos == -1)
-            {
-                return servers.ToArray();
+                return null;
             }
 
-            var plainProxies = profile.Substring(proxyStartPos, proxyEndPos - proxyStartPos + 1).Trim();
             return ParseProxyList(plainProxies);
         }
 
