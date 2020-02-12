@@ -47,7 +47,7 @@ namespace ProxyStation.ProfileParser
         /// Follow scheme https://shadowsocks.org/en/spec/SIP002-URI-Scheme.html
         /// to parse a given shadowsocks server uri.
         /// </summary>
-        private ShadowsocksServer ParseShadowsocksURI(string ssURI)
+        internal ShadowsocksServer ParseShadowsocksURI(string ssURI)
         {
             var u = new Uri(ssURI);
             var server = new ShadowsocksServer();
@@ -74,17 +74,19 @@ namespace ProxyStation.ProfileParser
                 case "simple-obfs":
                 case "obfs-local":
                     var options = new SimpleObfsPluginOptions();
-                    server.PluginType = PluginType.SimpleObfs;
                     server.PluginOptions = options;
 
                     foreach (var info in pluginInfos)
                     {
                         var trimedInfo = info.Trim();
-                        if (String.IsNullOrEmpty(options.Mode) && trimedInfo.StartsWith("obfs="))
+                        if (trimedInfo.StartsWith("obfs="))
                         {
-                            options.Mode = trimedInfo.Substring("obfs=".Length);
+                            if (SimpleObfsPluginOptions.TryParseMode(trimedInfo.Substring("obfs=".Length).Trim(), out SimpleObfsPluginMode mode))
+                            {
+                                options.Mode = mode;
+                            }
                         }
-                        else if (String.IsNullOrEmpty(options.Host) && trimedInfo.StartsWith("obfs-host="))
+                        else if (string.IsNullOrEmpty(options.Host) && trimedInfo.StartsWith("obfs-host="))
                         {
                             options.Host = trimedInfo.Substring("obfs-host=".Length);
                         }
@@ -106,7 +108,7 @@ namespace ProxyStation.ProfileParser
         /// Follow scheme https://github.com/shadowsocksr-backup/shadowsocks-rss/wiki/SSR-QRcode-scheme
         /// to parse a given shadowsocksR server uri.
         /// </summary>
-        private ShadowsocksRServer ParseShadowsocksRURI(string ssrURI)
+        ShadowsocksRServer ParseShadowsocksRURI(string ssrURI)
         {
             ssrURI = ssrURI.Substring("ssr://".Length);
             var splitted = Encoding.UTF8.GetString(WebSafeBase64Decode(HttpUtility.UrlDecode(ssrURI))).Split("/?");
@@ -125,7 +127,7 @@ namespace ProxyStation.ProfileParser
 
             // /?obfsparam=base64param&protoparam=base64param&remarks=base64remarks&group=base64group&udpport=0&uot=0
             var otherInfos = splitted.ElementAtOrDefault(1);
-            if (!String.IsNullOrEmpty(otherInfos))
+            if (!string.IsNullOrEmpty(otherInfos))
             {
                 var qs = HttpUtility.ParseQueryString(otherInfos);
                 server.ProtocolParameter = qs["protoparam"] != null ? Encoding.UTF8.GetString(WebSafeBase64Decode(qs["protoparam"])) : null;
@@ -152,15 +154,16 @@ namespace ProxyStation.ProfileParser
             uri.Fragment = HttpUtility.UrlEncode(server.Name).Replace("+", "%20");
             uri.Scheme = "ss";
 
-            if (server.PluginType == PluginType.SimpleObfs)
+            if (server.PluginOptions is SimpleObfsPluginOptions options)
             {
-                var options = server.PluginOptions as SimpleObfsPluginOptions;
-                var obfsHost = String.IsNullOrEmpty(options.Host) ? Constant.ObfsucationHost : options.Host;
-                queryBuilder.Add("plugin", $"obfs-local;obfs={options.Mode};obfs-host={obfsHost}");
+                var obfsHost = string.IsNullOrEmpty(options.Host) ? Constant.ObfsucationHost : options.Host;
+                queryBuilder.Add("plugin", $"obfs-local;obfs={options.Mode.ToString().ToLower()};obfs-host={obfsHost}");
             }
 
-            if (!String.IsNullOrEmpty(groupName))
+            if (!string.IsNullOrEmpty(groupName))
+            {
                 queryBuilder.Add("name", WebSafeBase64Encode(Encoding.UTF8.GetBytes(groupName)));
+            }
 
             uri.Query = queryBuilder.ToString().Replace(";", "%3B");
 
@@ -175,18 +178,18 @@ namespace ProxyStation.ProfileParser
             var otherInfos = new List<string>() {
                 "remarks=" + WebSafeBase64Encode(Encoding.UTF8.GetBytes(server.Name))
             };
-            if (!String.IsNullOrEmpty(server.ObfuscationParameter))
+            if (!string.IsNullOrEmpty(server.ObfuscationParameter))
                 otherInfos.Add("obfsparam=" + WebSafeBase64Encode(Encoding.UTF8.GetBytes(server.ObfuscationParameter)));
-            if (!String.IsNullOrEmpty(server.ProtocolParameter))
+            if (!string.IsNullOrEmpty(server.ProtocolParameter))
                 otherInfos.Add("protoparam=" + WebSafeBase64Encode(Encoding.UTF8.GetBytes(server.ProtocolParameter)));
             if (server.UDPPort > 0)
                 otherInfos.Add($"udpport={server.UDPPort}");
             if (server.UDPOverTCP)
                 otherInfos.Add("uot=1");
-            if (!String.IsNullOrEmpty(groupName))
+            if (!string.IsNullOrEmpty(groupName))
                 otherInfos.Add("group=" + WebSafeBase64Encode(Encoding.UTF8.GetBytes(groupName)));
 
-            return "ssr://" + WebSafeBase64Encode(Encoding.UTF8.GetBytes(serverInfo + "/?" + String.Join("&", otherInfos)));
+            return "ssr://" + WebSafeBase64Encode(Encoding.UTF8.GetBytes(serverInfo + "/?" + string.Join("&", otherInfos)));
         }
 
         public string Encode(Server[] servers, EncodeOptions options)

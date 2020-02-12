@@ -1,11 +1,12 @@
 using Microsoft.Extensions.Logging;
 using ProxyStation.Model;
+using ProxyStation.Util;
 
 namespace ProxyStation.ProfileParser
 {
     public static class ParserFactory
     {
-        public static IProfileParser GetParser(ProfileType type, ILogger logger)
+        public static IProfileParser GetParser(ProfileType type, ILogger logger, IDownloader downloader)
         {
             return type switch
             {
@@ -14,21 +15,32 @@ namespace ProxyStation.ProfileParser
                 ProfileType.Surge => new SurgeParser(logger),
                 ProfileType.SurgeList => new SurgeListParser(logger),
                 ProfileType.Clash => new ClashParser(logger),
+                ProfileType.QuantumultX => new QuantumultXParser(logger, downloader),
+                ProfileType.QuantumultXList => new QuantumultXListParser(logger, downloader),
                 _ => null,
             };
         }
 
-        public static IProfileParser GetParser(string type, ILogger logger)
+        public static IProfileParser GetParser(string type, ILogger logger, IDownloader downloader)
         {
-            return (type.ToLower()) switch
+            var profileType = (type.ToLower()) switch
             {
-                "original" => GetParser(ProfileType.Original, logger),
-                "general" => GetParser(ProfileType.General, logger),
-                "surge" => GetParser(ProfileType.Surge, logger),
-                "surge-list" => GetParser(ProfileType.SurgeList, logger),
-                "clash" => GetParser(ProfileType.Clash, logger),
-                _ => null,
+                "original" => ProfileType.Original,
+                "general" => ProfileType.General,
+                "surge" => ProfileType.Surge,
+                "surge-list" => ProfileType.SurgeList,
+                "clash" => ProfileType.Clash,
+                "quantumult-x" => ProfileType.QuantumultX,
+                "quantumult-x-list" => ProfileType.QuantumultXList,
+                _ => ProfileType.None,
             };
+
+            if (profileType == ProfileType.None)
+            {
+                return null;
+            }
+
+            return ParserFactory.GetParser(profileType, logger, downloader);
         }
     }
 }

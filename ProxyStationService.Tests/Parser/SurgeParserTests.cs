@@ -29,7 +29,7 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal("sadfasd=", servers[0].Name);
             Assert.Equal("aes-128-gcm", (servers[0] as ShadowsocksServer).Method);
             Assert.IsType<SimpleObfsPluginOptions>((servers[0] as ShadowsocksServer).PluginOptions);
-            Assert.Equal("http", ((servers[0] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
+            Assert.Equal(SimpleObfsPluginMode.HTTP, ((servers[0] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
             Assert.Equal("2341324124", ((servers[0] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Host);
 
             Assert.Equal(ProxyType.Shadowsocks, servers[1].Type);
@@ -46,7 +46,7 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal("🇭🇰 中国杭州 -> 香港 01 | IPLC", servers[2].Name);
             Assert.Equal("xchacha20-ietf-poly1305", (servers[2] as ShadowsocksServer).Method);
             Assert.IsType<SimpleObfsPluginOptions>((servers[2] as ShadowsocksServer).PluginOptions);
-            Assert.Equal("tls", ((servers[2] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
+            Assert.Equal(SimpleObfsPluginMode.TLS, ((servers[2] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
             Assert.Equal("download.windowsupdate.com", ((servers[2] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Host);
             Assert.True((servers[2] as ShadowsocksServer).UDPRelay);
 
@@ -57,7 +57,7 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal("sadfasd", servers[3].Name);
             Assert.Equal("aes-128-gcm", (servers[3] as ShadowsocksServer).Method);
             Assert.IsType<SimpleObfsPluginOptions>((servers[3] as ShadowsocksServer).PluginOptions);
-            Assert.Equal("http", ((servers[3] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
+            Assert.Equal(SimpleObfsPluginMode.HTTP, ((servers[3] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
             Assert.Equal("2341324124", ((servers[3] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Host);
         }
     }

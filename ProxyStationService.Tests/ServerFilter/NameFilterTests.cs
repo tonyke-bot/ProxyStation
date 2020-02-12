@@ -1,7 +1,6 @@
 using System.IO;
 using Microsoft.Extensions.Logging;
 using ProxyStation.Model;
-using ProxyStation.ProfileParser;
 using ProxyStation.ServerFilter;
 using Xunit;
 using Xunit.Abstractions;

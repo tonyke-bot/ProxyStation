@@ -54,7 +54,7 @@ namespace ProxyStation.ProfileParser
 
         public string Encode(Server[] servers, EncodeOptions options)
         {
-            var template = String.IsNullOrEmpty(options.Template) ? Clash.Template : options.Template;
+            var template = string.IsNullOrEmpty(options.Template) ? Clash.Template : options.Template;
             var deserializer = new DeserializerBuilder().Build();
             var result = deserializer.Deserialize<object>(template);
 
@@ -96,24 +96,29 @@ namespace ProxyStation.ProfileParser
                         switch (ss.PluginOptions)
                         {
                             case SimpleObfsPluginOptions obfsOptions:
-                                pluginOptions.Add("mode", obfsOptions.Mode);
-                                if (obfsOptions.Mode == "http")
-                                    pluginOptions.Add("host", String.IsNullOrEmpty(obfsOptions.Host) ? Constant.ObfsucationHost : obfsOptions.Host);
-
+                                pluginOptions.Add("mode", obfsOptions.Mode.ToString().ToLower());
+                                if (obfsOptions.Mode == SimpleObfsPluginMode.HTTP)
+                                {
+                                    pluginOptions.Add("host", string.IsNullOrEmpty(obfsOptions.Host) ? Constant.ObfsucationHost : obfsOptions.Host);
+                                }
                                 proxy.Add("plugin", "obfs");
                                 proxy.Add("plugin-opts", pluginOptions);
                                 break;
                             case V2RayPluginOptions v2rayOptions:
-                                pluginOptions.Add("mode", v2rayOptions.Mode);
-                                if (v2rayOptions.Mode == "websocket")
+                                if (v2rayOptions.Mode == V2RayPluginMode.WebSocket)
                                 {
+                                    pluginOptions.Add("mode", v2rayOptions.Mode.ToString().ToLower());
                                     pluginOptions.Add("host", v2rayOptions.Host);
-                                    pluginOptions.Add("path", String.IsNullOrEmpty(v2rayOptions.Path) ? "/" : v2rayOptions.Path);
+                                    pluginOptions.Add("path", string.IsNullOrEmpty(v2rayOptions.Path) ? "/" : v2rayOptions.Path);
                                     if (v2rayOptions.SkipCertVerification) pluginOptions.Add("skip-cert-verify", true);
                                     if (v2rayOptions.EnableTLS) pluginOptions.Add("tls", true);
                                     if (v2rayOptions.Headers.Count > 0) pluginOptions.Add("headers", v2rayOptions.Headers);
                                 }
-
+                                else
+                                {
+                                    this.logger.LogError($"Clash doesn't support v2ray-plugin on QUIC. This server will be ignored");
+                                    return null;
+                                }
                                 proxy.Add("plugin", "v2ray-plugin");
                                 proxy.Add("plugin-opts", pluginOptions);
                                 break;
@@ -138,11 +143,15 @@ namespace ProxyStation.ProfileParser
             return ".yaml";
         }
 
-        public static Server ParseShadowsocksServer(YamlMappingNode proxy)
+        public Server ParseShadowsocksServer(YamlMappingNode proxy)
         {
+            string portString = Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "port", "0");
             int port;
-            if (!Int32.TryParse(Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "port", "0"), out port))
+            if (!int.TryParse(portString, out port))
+            {
+                this.logger.LogError($"Invalid port: {port}.");
                 return null;
+            }
 
             var server = new ShadowsocksServer()
             {
@@ -159,25 +168,43 @@ namespace ProxyStation.ProfileParser
             // https://github.com/Dreamacro/clash/blob/34338e7107c1868124f8aab2446f6b71c9b0640f/adapters/outbound/shadowsocks.go#L135
             if (proxy.Children.TryGetValue("plugin-opts", out pluginOptionsNode) && pluginOptionsNode.NodeType == YamlNodeType.Mapping)
             {
-                switch (Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "plugin"))
+                switch (Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "plugin").ToLower())
                 {
                     case "obfs":
-                        server.PluginType = PluginType.SimpleObfs;
-                        server.PluginOptions = new SimpleObfsPluginOptions()
+                        var simpleObfsModeString = Yaml.GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "mode");
+                        var simpleObfsOptions = new SimpleObfsPluginOptions();
+
+                        if (SimpleObfsPluginOptions.TryParseMode(simpleObfsModeString, out SimpleObfsPluginMode simpleObfsMode))
                         {
-                            Mode = Yaml.GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "mode"),
-                            Host = Yaml.GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "host"),
-                        };
+                            simpleObfsOptions.Mode = simpleObfsMode;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(simpleObfsModeString))
+                        {
+                            this.logger.LogError($"Unsupported simple-obfs mode: {simpleObfsModeString}. This server will be ignored.");
+                            return null;
+                        }
+                        simpleObfsOptions.Host = Yaml.GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "host");
+
+                        server.PluginOptions = simpleObfsOptions;
                         break;
                     case "v2ray-plugin":
                         // also refer to official v2ray-plugin to parse v2ray-plugin options
                         // https://github.com/shadowsocks/v2ray-plugin/blob/c7017f45bb1e12cf1e4b739bcb8f42f3eb8b22cd/main.go#L126
+                        var v2rayModeString = Yaml.GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "mode");
                         var options = new V2RayPluginOptions();
-                        server.PluginType = PluginType.V2Ray;
                         server.PluginOptions = options;
 
+                        if (V2RayPluginOptions.TryParseMode(v2rayModeString, out V2RayPluginMode v2rayMode))
+                        {
+                            options.Mode = v2rayMode;
+                        }
+                        else
+                        {
+                            this.logger.LogError($"Unsupported v2ray-plugin mode: {v2rayModeString}. This server will be ignored.");
+                            return null;
+                        }
+
                         options.Host = Yaml.GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "host");
-                        options.Mode = Yaml.GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "mode");
                         options.Path = Yaml.GetStringOrDefaultFromYamlChildrenNode(pluginOptionsNode, "path");
                         options.EnableTLS = Yaml.GetTruthFromYamlChildrenNode(pluginOptionsNode, "tls");
                         options.SkipCertVerification = Yaml.GetTruthFromYamlChildrenNode(pluginOptionsNode, "skip-cert-verify");
@@ -185,8 +212,13 @@ namespace ProxyStation.ProfileParser
 
                         YamlNode headersNode;
                         if (!(pluginOptionsNode as YamlMappingNode).Children.TryGetValue("headers", out headersNode))
+                        {
                             break;
-                        if (headersNode.NodeType != YamlNodeType.Mapping) break;
+                        }
+                        if (headersNode.NodeType != YamlNodeType.Mapping)
+                        {
+                            break;
+                        }
 
                         foreach (var header in (headersNode as YamlMappingNode))
                         {
@@ -197,20 +229,22 @@ namespace ProxyStation.ProfileParser
                 }
             }
 
-
-            if (server.PluginType == PluginType.None)
+            if (server.PluginOptions == null)
             {
-                var obfs = Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "obfs");
-                var obfsHost = Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "obfs-host");
+                var simpleObfsModeString = Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "obfs");
 
-                if (!String.IsNullOrEmpty(obfs))
+                if (SimpleObfsPluginOptions.TryParseMode(simpleObfsModeString, out SimpleObfsPluginMode simpleObfsMode))
                 {
-                    server.PluginType = PluginType.SimpleObfs;
                     server.PluginOptions = new SimpleObfsPluginOptions()
                     {
-                        Mode = obfs,
-                        Host = obfsHost
+                        Mode = simpleObfsMode,
+                        Host = Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "obfs-host")
                     };
+                }
+                else if (!string.IsNullOrWhiteSpace(simpleObfsModeString))
+                {
+                    this.logger.LogError($"Unsupported simple-obfs mode: {simpleObfsModeString}");
+                    return null;
                 }
             }
 

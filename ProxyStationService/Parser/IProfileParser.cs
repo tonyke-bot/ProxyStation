@@ -1,5 +1,6 @@
 ﻿using System;
 using ProxyStation.Model;
+using ProxyStation.Util;
 
 namespace ProxyStation.ProfileParser
 {
@@ -16,6 +17,12 @@ namespace ProxyStation.ProfileParser
         /// </summary>
         /// <value></value>
         public string Template { get; set; }
+
+        /// <summary>
+        /// The downloader used to download file
+        /// </summary>
+        /// <value></value>
+        public IDownloader Downloader { get; set; }
     }
 
     public interface IProfileParser

@@ -36,12 +36,12 @@ namespace ProxyStation.HttpTrigger
             TemplateFactory.SetEnvironmentManager(Functions.EnvironmentManager);
 
             // Parse target parser type
-            IProfileParser targetProfileParser = ParserFactory.GetParser(typeName ?? "", logger);
+            IProfileParser targetProfileParser = ParserFactory.GetParser(typeName ?? "", logger, Functions.Downloader);
             if (targetProfileParser == null)
             {
                 var userAgent = req.Headers["user-agent"];
                 var probableType = Functions.GuessTypeFromUserAgent(userAgent);
-                targetProfileParser = ParserFactory.GetParser(probableType, logger);
+                targetProfileParser = ParserFactory.GetParser(probableType, logger, Functions.Downloader);
                 logger.LogInformation("Attempt to guess target type from user agent, UserAgent={userAgent}, Result={targetType}", userAgent, targetProfileParser.GetType());
             }
 
@@ -91,7 +91,7 @@ namespace ProxyStation.HttpTrigger
 
             // Download template, parse profile and apply filters
             var template = await Functions.GetTemplate(templateUrlOrName);
-            var profileParser = ParserFactory.GetParser(sourceProfile.Type, logger);
+            var profileParser = ParserFactory.GetParser(sourceProfile.Type, logger, Functions.Downloader);
             if (profileParser == null)
             {
                 logger.LogError($"Profile parser for {sourceProfile.Type} is not implemented! Complete profile alias chain is `{Functions.ProfileChainToString(profileChain)}`");

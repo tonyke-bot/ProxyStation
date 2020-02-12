@@ -254,5 +254,31 @@ namespace ProxyStation.Tests.HttpTrigger
             downloader.Received().Download(templateUrl);
 #pragma warning restore 4014
         }
+
+        [Fact]
+        public async Task ShouldSuccessWithQuantumultX()
+        {
+            var profileUrl = "test";
+            var profileName = "Test";
+            var profileConfig = $"{{\"source\": \"{profileUrl}\", \"type\": \"surge\", \"name\": \"{profileName}\"}}";
+            var profileContent = Fixtures.SurgeProfile2;
+
+            var downloader = Substitute.For<IDownloader>();
+            var environmentManager = Substitute.For<IEnvironmentManager>();
+            var request = Substitute.For<HttpRequest>();
+
+            Functions.EnvironmentManager = environmentManager;
+            Functions.Downloader = downloader;
+
+            environmentManager.Get(profileName).Returns(profileConfig);
+            downloader.Download(profileUrl).Returns(profileContent);
+
+            var result = await Functions.GetTrain(request, profileName, "quantumult-x", this.logger);
+            Assert.IsType<FileContentResult>(result);
+
+            var resultProfile = Encoding.UTF8.GetString((result as FileContentResult).FileContents);
+            this.logger.LogInformation(resultProfile);
+            // Assert.Equal(Fixtures.SurgeListProfile1, resultProfile);
+        }
     }
 }

@@ -2,18 +2,18 @@
 using Microsoft.Extensions.Logging;
 using ProxyStation.Model;
 using ProxyStation.ProfileParser;
-using ProxyStation.Tests.HttpTrigger;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace ProxyStation.Tests.Parser
 {
     public class ClashParserTests
     {
-        ClashParser parser;
+        readonly ClashParser parser;
 
-        public ClashParserTests()
+        public ClashParserTests(ITestOutputHelper output)
         {
-            parser = new ClashParser(new LoggerFactory().CreateLogger("test"));
+            parser = new ClashParser(output.BuildLogger());
         }
 
         private string GetFixturePath(string relativePath) => Path.Combine("../../..", "./Parser/Fixtures", relativePath);
@@ -32,7 +32,7 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal("🇺🇸 中国上海 -> 美国 01 | IPLC", servers[0].Name);
             Assert.Equal("chacha20-ietf-poly1305", (servers[0] as ShadowsocksServer).Method);
             Assert.IsType<SimpleObfsPluginOptions>((servers[0] as ShadowsocksServer).PluginOptions);
-            Assert.Equal("tls", ((servers[0] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
+            Assert.Equal(SimpleObfsPluginMode.TLS, ((servers[0] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
             Assert.Equal("adfadfads", ((servers[0] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Host);
             Assert.True((servers[0] as ShadowsocksServer).UDPRelay);
 
@@ -43,7 +43,7 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal("🇺🇸 中国上海 -> 美国 01 | IPLC", servers[1].Name);
             Assert.Equal("chacha20-ietf-poly1305", (servers[1] as ShadowsocksServer).Method);
             Assert.IsType<SimpleObfsPluginOptions>((servers[1] as ShadowsocksServer).PluginOptions);
-            Assert.Equal("tls", ((servers[1] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
+            Assert.Equal(SimpleObfsPluginMode.TLS, ((servers[1] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
             Assert.Equal("asdfasdf", ((servers[1] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Host);
             Assert.False((servers[1] as ShadowsocksServer).UDPRelay);
 
@@ -54,7 +54,7 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal("ss3", servers[2].Name);
             Assert.Equal("AEAD_CHACHA20_POLY1305", (servers[2] as ShadowsocksServer).Method);
             Assert.IsType<V2RayPluginOptions>((servers[2] as ShadowsocksServer).PluginOptions);
-            Assert.Equal("websocket", ((servers[2] as ShadowsocksServer).PluginOptions as V2RayPluginOptions).Mode);
+            Assert.Equal(V2RayPluginMode.WebSocket, ((servers[2] as ShadowsocksServer).PluginOptions as V2RayPluginOptions).Mode);
             Assert.Equal("bing.com", ((servers[2] as ShadowsocksServer).PluginOptions as V2RayPluginOptions).Host);
             Assert.Equal("/", ((servers[2] as ShadowsocksServer).PluginOptions as V2RayPluginOptions).Path);
             Assert.True(((servers[2] as ShadowsocksServer).PluginOptions as V2RayPluginOptions).SkipCertVerification);
@@ -70,7 +70,6 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal("password", servers[3].Password);
             Assert.Equal("ss5", servers[3].Name);
             Assert.Equal("AEAD_CHACHA20_POLY1305", (servers[3] as ShadowsocksServer).Method);
-            Assert.Equal(PluginType.None, (servers[3] as ShadowsocksServer).PluginType);
             Assert.Null((servers[3] as ShadowsocksServer).PluginOptions);
         }
     }

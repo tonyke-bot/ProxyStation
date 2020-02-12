@@ -33,7 +33,7 @@ namespace ProxyStation.ProfileParser
 
         public bool ValidateTemplate(string template)
         {
-            if (String.IsNullOrEmpty(template))
+            if (string.IsNullOrEmpty(template))
             {
                 return true;
             }
@@ -53,9 +53,6 @@ namespace ProxyStation.ProfileParser
                 var match = proxyRegex.Match(proxy);
                 if (!match.Success) continue;
 
-                var server = new ShadowsocksServer();
-                server.Name = match.Groups[1].Value;
-
                 var serverInfos = match.Groups[2].Value.Trim().Split(",");
                 switch (serverInfos[0].Trim().ToLower())
                 {
@@ -66,38 +63,55 @@ namespace ProxyStation.ProfileParser
                         continue;
                 }
 
-                int port = 0;
-                if (Int32.TryParse((serverInfos[2] ?? ""), out port)) server.Port = port;
-                server.Host = (serverInfos[1] ?? "").Trim();
-                server.Method = TrimPrefix((serverInfos[3] ?? "").Trim(), "encrypt-method=");
-                server.Password = TrimPrefix((serverInfos[4] ?? "").Trim(), "password=");
+                var server = new ShadowsocksServer
+                {
+                    Name = match.Groups[1].Value,
+                    Host = (serverInfos[1] ?? "").Trim(),
+                    Method = TrimPrefix((serverInfos[3] ?? "").Trim(), "encrypt-method="),
+                    Password = TrimPrefix((serverInfos[4] ?? "").Trim(), "password=")
+                };
+                if (int.TryParse(serverInfos[2] ?? "", out int port))
+                {
+                    server.Port = port;
+                }
 
                 var pluginOptions = new SimpleObfsPluginOptions();
+
+                // Parse plugin
                 for (var i = 5; i < serverInfos.Length; i++)
                 {
                     var trimedInfo = serverInfos[i].Trim();
-                    if (String.IsNullOrEmpty(pluginOptions.Mode) && trimedInfo.StartsWith("obfs="))
-                        pluginOptions.Mode = trimedInfo.Substring("obfs=".Length).TrimStart();
-
-                    else if (String.IsNullOrEmpty(pluginOptions.Host) && trimedInfo.StartsWith("obfs-host="))
+                    if (trimedInfo.StartsWith("obfs="))
+                    {
+                        if (SimpleObfsPluginOptions.TryParseMode(trimedInfo.Substring("obfs=".Length).Trim(), out SimpleObfsPluginMode mode))
+                        {
+                            server.PluginOptions = pluginOptions;
+                            pluginOptions.Mode = mode;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    else if (string.IsNullOrEmpty(pluginOptions.Host) && trimedInfo.StartsWith("obfs-host="))
+                    {
                         pluginOptions.Host = trimedInfo.Substring("obfs-host=".Length).TrimStart();
-
+                    }
                     else if (!server.UDPRelay && trimedInfo.StartsWith("udp-relay="))
+                    {
                         server.UDPRelay = trimedInfo.Substring("udp-relay=".Length).TrimStart() == "true";
-
-                    // module is no more needed for newer version of surge
+                    }
                     else if (trimedInfo.StartsWith("http://") || trimedInfo.StartsWith("https://"))
+                    {
+                        // module is no more needed for newer version of surge
                         continue;
-
+                    }
                     else
+                    {
                         logger.LogWarning($"Unsupported surge proxy parameter found: {trimedInfo}");
+                    }
                 }
 
-                if (!String.IsNullOrEmpty(pluginOptions.Mode))
-                {
-                    server.PluginType = PluginType.SimpleObfs;
-                    server.PluginOptions = pluginOptions;
-                }
 
                 servers.Add(server);
             }
@@ -141,19 +155,20 @@ namespace ProxyStation.ProfileParser
                 throw new InvalidTemplateException();
             }
 
-            var template = String.IsNullOrEmpty(options.Template) ? Surge.Template : options.Template;
+            var template = string.IsNullOrEmpty(options.Template) ? Surge.Template : options.Template;
 
             if (options is SurgeEncodeOptions)
             {
                 var surgeOptions = options as SurgeEncodeOptions;
-                if (!String.IsNullOrEmpty(surgeOptions.ProfileURL))
+                if (!string.IsNullOrEmpty(surgeOptions.ProfileURL))
                 {
                     template = $"#!MANAGED-CONFIG {surgeOptions.ProfileURL} interval=43200\n" + template;
                 }
             }
 
-            return template.Replace(Surge.ServerListPlaceholder, EncodeProxyList(servers))
-                .Replace(Surge.ServerNamesPlaceholder, String.Join(", ", servers.Select(s => s.Name)));
+            return template
+                .Replace(Surge.ServerListPlaceholder, EncodeProxyList(servers))
+                .Replace(Surge.ServerNamesPlaceholder, string.Join(", ", servers.Select(s => s.Name)));
         }
 
         public string EncodeProxyList(Server[] servers)
@@ -163,19 +178,29 @@ namespace ProxyStation.ProfileParser
             {
                 if (server.Type != ProxyType.Shadowsocks) continue;
                 var ssServer = server as ShadowsocksServer;
-                var line = $"{server.Name} = ss, {server.Host}, {server.Port}, encrypt-method={ssServer.Method}, password={ssServer.Password}";
-                if (ssServer.PluginType == PluginType.SimpleObfs)
+                sb.Append($"{server.Name} = ss, {server.Host}, {server.Port}, encrypt-method={ssServer.Method}, password={ssServer.Password}");
+
+                if (ssServer.PluginOptions is SimpleObfsPluginOptions options)
                 {
-                    var pluginOptions = ssServer.PluginOptions as SimpleObfsPluginOptions;
-                    var obfsHost = String.IsNullOrEmpty(pluginOptions.Host) ? Constant.ObfsucationHost : pluginOptions.Host;
-                    line += $", obfs={pluginOptions.Mode}, obfs-host={obfsHost}";
+                    var obfsHost = string.IsNullOrEmpty(options.Host) ? Constant.ObfsucationHost : options.Host;
+                    sb.Append($", obfs={SurgeParser.FormatSimpleObfsPluginMode(options.Mode)}, obfs-host={obfsHost}");
                 }
-                line += ", udp-relay=true";
-                sb.AppendLine(line);
+                sb.Append(", udp-relay=true");
+                sb.AppendLine();
             }
             return sb.ToString();
         }
 
         public string ExtName() => "";
+
+        static string FormatSimpleObfsPluginMode(SimpleObfsPluginMode mode)
+        {
+            return mode switch
+            {
+                SimpleObfsPluginMode.HTTP => "http",
+                SimpleObfsPluginMode.TLS => "tls",
+                _ => throw new NotImplementedException(),
+            };
+        }
     }
 }

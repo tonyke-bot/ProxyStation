@@ -61,7 +61,7 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal("Example2", servers[3].Name);
             Assert.Equal("rc4-md5", (servers[3] as ShadowsocksServer).Method);
             Assert.IsType<SimpleObfsPluginOptions>((servers[3] as ShadowsocksServer).PluginOptions);
-            Assert.Equal("http", ((servers[3] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
+            Assert.Equal(SimpleObfsPluginMode.HTTP, ((servers[3] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
 
             Assert.Equal(ProxyType.Shadowsocks, servers[4].Type);
             Assert.Equal("192.168.100.1", servers[4].Host);

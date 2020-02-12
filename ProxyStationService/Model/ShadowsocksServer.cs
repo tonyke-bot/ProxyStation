@@ -2,41 +2,109 @@ using System.Collections.Generic;
 
 namespace ProxyStation.Model
 {
-    public enum PluginType
+    public abstract class SSPluginOptions { }
+
+    public enum SimpleObfsPluginMode
     {
-        None,
-        SimpleObfs,
-        V2Ray,
+        HTTP,
+
+        TLS,
     }
 
-    public abstract class PluginOptions { }
-
-    public class SimpleObfsPluginOptions : PluginOptions
+    public class SimpleObfsPluginOptions : SSPluginOptions
     {
-        public string Mode { get; set; }
+        public SimpleObfsPluginMode Mode { get; set; }
+
         public string Host { get; set; }
+
+        public string Uri { get; set; }
+
+        public static bool TryParseMode(string value, out SimpleObfsPluginMode mode)
+        {
+            mode = default;
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            switch (value.Trim().ToLower())
+            {
+                case "tls":
+                    mode = SimpleObfsPluginMode.TLS;
+                    break;
+                case "http":
+                    mode = SimpleObfsPluginMode.HTTP;
+                    break;
+                default:
+                    return false;
+            };
+            return true;
+        }
     }
 
-    public class V2RayPluginOptions : PluginOptions
+    public enum V2RayPluginMode
     {
-        public string Mode { get; set; }
+        WebSocket,
+
+        QUIC,
+    }
+
+    public class V2RayPluginOptions : SSPluginOptions
+    {
+        public V2RayPluginMode Mode { get; set; }
+
         public string Host { get; set; }
+
         public string Path { get; set; }
+
         public bool EnableTLS { get; set; }
+
         public bool SkipCertVerification { get; set; }
+
         public Dictionary<string, string> Headers { get; set; }
+
+        public static bool TryParseMode(string value, out V2RayPluginMode mode)
+        {
+            mode = default;
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            switch (value.Trim().ToLower())
+            {
+                case "ws":
+                    mode = V2RayPluginMode.WebSocket;
+                    break;
+                case "websocket":
+                    mode = V2RayPluginMode.WebSocket;
+                    break;
+                case "quic":
+                    mode = V2RayPluginMode.QUIC;
+                    break;
+                default:
+                    return false;
+
+            };
+            return true;
+        }
     }
 
     public class ShadowsocksServer : Server
     {
-        public bool UDPRelay { get; set; }
         public string Method { get; set; }
-        public PluginType PluginType { get; set; }
-        public PluginOptions PluginOptions { get; set; }
+
+        public bool UDPRelay { get; set; }
+
+        public bool FastOpen { get; set; }
+
+        public SSPluginOptions PluginOptions { get; set; }
 
         public ShadowsocksServer()
         {
-            Type = ProxyType.Shadowsocks;
+            this.Type = ProxyType.Shadowsocks;
         }
     }
 }

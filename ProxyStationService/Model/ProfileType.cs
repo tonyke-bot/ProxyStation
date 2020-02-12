@@ -3,11 +3,13 @@ namespace ProxyStation.Model
     public enum ProfileType
     {
         None,
+        Original,
+        Alias,
         General,
         Surge,
         SurgeList,
         Clash,
-        Original,
-        Alias,
+        QuantumultX,
+        QuantumultXList,
     }
 }
