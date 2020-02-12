@@ -25,40 +25,40 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal(ProxyType.Shadowsocks, servers[0].Type);
             Assert.Equal("12381293", servers[0].Host);
             Assert.Equal(123, servers[0].Port);
-            Assert.Equal("1231341", servers[0].Password);
+            Assert.Equal("1231341", ((ShadowsocksServer)servers[0]).Password);
             Assert.Equal("sadfasd=", servers[0].Name);
-            Assert.Equal("aes-128-gcm", (servers[0] as ShadowsocksServer).Method);
-            Assert.IsType<SimpleObfsPluginOptions>((servers[0] as ShadowsocksServer).PluginOptions);
-            Assert.Equal(SimpleObfsPluginMode.HTTP, ((servers[0] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
-            Assert.Equal("2341324124", ((servers[0] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Host);
+            Assert.Equal("aes-128-gcm", ((ShadowsocksServer)servers[0]).Method);
+            Assert.IsType<SimpleObfsPluginOptions>(((ShadowsocksServer)servers[0]).PluginOptions);
+            Assert.Equal(SimpleObfsPluginMode.HTTP, (((ShadowsocksServer)servers[0]).PluginOptions as SimpleObfsPluginOptions).Mode);
+            Assert.Equal("2341324124", (((ShadowsocksServer)servers[0]).PluginOptions as SimpleObfsPluginOptions).Host);
 
             Assert.Equal(ProxyType.Shadowsocks, servers[1].Type);
             Assert.Equal("hk5.edge.iplc.app", servers[1].Host);
             Assert.Equal(155, servers[1].Port);
-            Assert.Equal("asdads", servers[1].Password);
-            Assert.Equal("rc4-md5", (servers[1] as ShadowsocksServer).Method);
-            Assert.True((servers[1] as ShadowsocksServer).UDPRelay);
+            Assert.Equal("asdads", ((ShadowsocksServer)servers[1]).Password);
+            Assert.Equal("rc4-md5", ((ShadowsocksServer)servers[1]).Method);
+            Assert.True(((ShadowsocksServer)servers[1]).UDPRelay);
 
             Assert.Equal(ProxyType.Shadowsocks, servers[2].Type);
             Assert.Equal("123.123.123.123", servers[2].Host);
             Assert.Equal(10086, servers[2].Port);
-            Assert.Equal("gasdas", servers[2].Password);
+            Assert.Equal("gasdas", ((ShadowsocksServer)servers[2]).Password);
             Assert.Equal("🇭🇰 中国杭州 -> 香港 01 | IPLC", servers[2].Name);
-            Assert.Equal("xchacha20-ietf-poly1305", (servers[2] as ShadowsocksServer).Method);
-            Assert.IsType<SimpleObfsPluginOptions>((servers[2] as ShadowsocksServer).PluginOptions);
-            Assert.Equal(SimpleObfsPluginMode.TLS, ((servers[2] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
-            Assert.Equal("download.windowsupdate.com", ((servers[2] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Host);
-            Assert.True((servers[2] as ShadowsocksServer).UDPRelay);
+            Assert.Equal("xchacha20-ietf-poly1305", ((ShadowsocksServer)servers[2]).Method);
+            Assert.IsType<SimpleObfsPluginOptions>(((ShadowsocksServer)servers[2]).PluginOptions);
+            Assert.Equal(SimpleObfsPluginMode.TLS, (((ShadowsocksServer)servers[2]).PluginOptions as SimpleObfsPluginOptions).Mode);
+            Assert.Equal("download.windowsupdate.com", (((ShadowsocksServer)servers[2]).PluginOptions as SimpleObfsPluginOptions).Host);
+            Assert.True(((ShadowsocksServer)servers[2]).UDPRelay);
 
             Assert.Equal(ProxyType.Shadowsocks, servers[3].Type);
             Assert.Equal("12381293", servers[3].Host);
             Assert.Equal(123, servers[3].Port);
-            Assert.Equal("1231341", servers[3].Password);
+            Assert.Equal("1231341", ((ShadowsocksServer)servers[3]).Password);
             Assert.Equal("sadfasd", servers[3].Name);
-            Assert.Equal("aes-128-gcm", (servers[3] as ShadowsocksServer).Method);
-            Assert.IsType<SimpleObfsPluginOptions>((servers[3] as ShadowsocksServer).PluginOptions);
-            Assert.Equal(SimpleObfsPluginMode.HTTP, ((servers[3] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Mode);
-            Assert.Equal("2341324124", ((servers[3] as ShadowsocksServer).PluginOptions as SimpleObfsPluginOptions).Host);
+            Assert.Equal("aes-128-gcm", ((ShadowsocksServer)servers[3]).Method);
+            Assert.IsType<SimpleObfsPluginOptions>(((ShadowsocksServer)servers[3]).PluginOptions);
+            Assert.Equal(SimpleObfsPluginMode.HTTP, (((ShadowsocksServer)servers[3]).PluginOptions as SimpleObfsPluginOptions).Mode);
+            Assert.Equal("2341324124", (((ShadowsocksServer)servers[3]).PluginOptions as SimpleObfsPluginOptions).Host);
         }
     }
 }

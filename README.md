@@ -13,14 +13,14 @@ A proxy servers list management program runs on Azure Functions. Support most of
 * QuantumultX List: <https://proxy-station.azurewebsites.net/api/train/demo/quantumult-x-list>
 
 ### App Supported
-| Alias               | App                                                       | As source | As output |
-|:-------------------:|:---------------------------------------------------------:|:---------:|:---------:|
-| `general`           | Shadowrocket<br>Shadowsocks<br>ShadowsocksR<br>Quantumult | √         | √         |
-| `surge`             | Surge                                                     | √         | √         |
-| `surge-list`        | Surge(Proxy List)                                         | √         | √         |
-| `clash`             | Clash                                                     | √         | √         |
-| `quantumult-x`      | QuantumultX                                               | √         | √         |
-| `quantumult-x-list` | QuantumultX(Proxy List)                                   | √         | √         |                 
+| Alias               | App                                             | As source | As output |
+|:--------------------|:-----------------------------------------------:|:---------:|:---------:|
+| `general`           | Shadowrocket<br>Shadowsocks(R)<br>Quantumult(X) | √         | √         |
+| `surge`             | Surge                                           | √         | √         |
+| `surge-list`        | Surge(Proxy List)                               | √         | √         |
+| `clash`             | Clash                                           | √         | √         |
+| `quantumult-x`      | QuantumultX                                     | √         | √         |
+| `quantumult-x-list` | QuantumultX(Proxy List)                         | √         | √         |                 
 
 ### How to Deploy to Azure Functions
 Coming soon.

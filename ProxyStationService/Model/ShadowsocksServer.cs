@@ -94,6 +94,8 @@ namespace ProxyStation.Model
 
     public class ShadowsocksServer : Server
     {
+        public string Password { get; set; }
+
         public string Method { get; set; }
 
         public bool UDPRelay { get; set; }

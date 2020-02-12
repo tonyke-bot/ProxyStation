@@ -2,6 +2,8 @@ namespace ProxyStation.Model
 {
     public class ShadowsocksRServer : Server
     {
+        public string Password { get; set; }
+
         public string Method { get; set; }
 
         public string Obfuscation { get; set; }
