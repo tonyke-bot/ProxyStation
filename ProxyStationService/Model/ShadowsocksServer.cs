@@ -103,10 +103,5 @@ namespace ProxyStation.Model
         public bool FastOpen { get; set; }
 
         public SSPluginOptions PluginOptions { get; set; }
-
-        public ShadowsocksServer()
-        {
-            this.Type = ProxyType.Shadowsocks;
-        }
     }
 }

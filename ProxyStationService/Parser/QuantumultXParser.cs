@@ -125,7 +125,7 @@ namespace ProxyStation.ProfileParser
                     }
                     else
                     {
-                        this.logger.LogInformation($"Server `{server.Name}`({server.Type}) is ignored during encoding.");
+                        this.logger.LogInformation($"Server `{server.Name}`({server.GetType()}) is ignored during encoding.");
                     }
                     return serverLine;
                 })

@@ -25,7 +25,7 @@ namespace ProxyStation.Tests.Parser
 
             Assert.Equal(4, servers.Length);
 
-            Assert.Equal(ProxyType.Shadowsocks, servers[0].Type);
+            Assert.IsType<ShadowsocksServer>(servers[0]);
             Assert.Equal("gg.gol.proxy", servers[0].Host);
             Assert.Equal(152, servers[0].Port);
             Assert.Equal("asdbasv", ((ShadowsocksServer)servers[0]).Password);
@@ -36,7 +36,7 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal("adfadfads", (((ShadowsocksServer)servers[0]).PluginOptions as SimpleObfsPluginOptions).Host);
             Assert.True(((ShadowsocksServer)servers[0]).UDPRelay);
 
-            Assert.Equal(ProxyType.Shadowsocks, servers[1].Type);
+            Assert.IsType<ShadowsocksServer>(servers[1]);
             Assert.Equal("gg.gol.proxy", servers[1].Host);
             Assert.Equal(152, servers[1].Port);
             Assert.Equal("asdbasv", ((ShadowsocksServer)servers[1]).Password);
@@ -47,7 +47,7 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal("asdfasdf", (((ShadowsocksServer)servers[1]).PluginOptions as SimpleObfsPluginOptions).Host);
             Assert.False(((ShadowsocksServer)servers[1]).UDPRelay);
 
-            Assert.Equal(ProxyType.Shadowsocks, servers[2].Type);
+            Assert.IsType<ShadowsocksServer>(servers[2]);
             Assert.Equal("server", servers[2].Host);
             Assert.Equal(443, servers[2].Port);
             Assert.Equal("password", ((ShadowsocksServer)servers[2]).Password);
@@ -64,7 +64,7 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal("bar", (((ShadowsocksServer)servers[2]).PluginOptions as V2RayPluginOptions).Headers["foo"]);
             Assert.False(((ShadowsocksServer)servers[2]).UDPRelay);
 
-            Assert.Equal(ProxyType.Shadowsocks, servers[3].Type);
+            Assert.IsType<ShadowsocksServer>(servers[3]);
             Assert.Equal("server", servers[3].Host);
             Assert.Equal(443, servers[3].Port);
             Assert.Equal("password", ((ShadowsocksServer)servers[3]).Password);

@@ -22,7 +22,7 @@ namespace ProxyStation.Tests.Parser
         {
             var servers = parser.Parse(File.ReadAllText(GetFixturePath("Surge.conf")));
 
-            Assert.Equal(ProxyType.Shadowsocks, servers[0].Type);
+            Assert.IsType<ShadowsocksServer>(servers[0]);
             Assert.Equal("12381293", servers[0].Host);
             Assert.Equal(123, servers[0].Port);
             Assert.Equal("1231341", ((ShadowsocksServer)servers[0]).Password);
@@ -32,14 +32,14 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal(SimpleObfsPluginMode.HTTP, (((ShadowsocksServer)servers[0]).PluginOptions as SimpleObfsPluginOptions).Mode);
             Assert.Equal("2341324124", (((ShadowsocksServer)servers[0]).PluginOptions as SimpleObfsPluginOptions).Host);
 
-            Assert.Equal(ProxyType.Shadowsocks, servers[1].Type);
+            Assert.IsType<ShadowsocksServer>(servers[1]);
             Assert.Equal("hk5.edge.iplc.app", servers[1].Host);
             Assert.Equal(155, servers[1].Port);
             Assert.Equal("asdads", ((ShadowsocksServer)servers[1]).Password);
             Assert.Equal("rc4-md5", ((ShadowsocksServer)servers[1]).Method);
             Assert.True(((ShadowsocksServer)servers[1]).UDPRelay);
 
-            Assert.Equal(ProxyType.Shadowsocks, servers[2].Type);
+            Assert.IsType<ShadowsocksServer>(servers[2]);
             Assert.Equal("123.123.123.123", servers[2].Host);
             Assert.Equal(10086, servers[2].Port);
             Assert.Equal("gasdas", ((ShadowsocksServer)servers[2]).Password);
@@ -50,7 +50,7 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal("download.windowsupdate.com", (((ShadowsocksServer)servers[2]).PluginOptions as SimpleObfsPluginOptions).Host);
             Assert.True(((ShadowsocksServer)servers[2]).UDPRelay);
 
-            Assert.Equal(ProxyType.Shadowsocks, servers[3].Type);
+            Assert.IsType<ShadowsocksServer>(servers[3]);
             Assert.Equal("12381293", servers[3].Host);
             Assert.Equal(123, servers[3].Port);
             Assert.Equal("1231341", ((ShadowsocksServer)servers[3]).Password);

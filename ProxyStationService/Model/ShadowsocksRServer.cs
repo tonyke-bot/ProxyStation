@@ -17,10 +17,5 @@ namespace ProxyStation.Model
         public int UDPPort { get; set; }
 
         public bool UDPOverTCP { get; set; }
-
-        public ShadowsocksRServer()
-        {
-            this.Type = ProxyType.ShadowsocksR;
-        }
     }
 }

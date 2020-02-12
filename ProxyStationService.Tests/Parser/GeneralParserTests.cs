@@ -22,7 +22,7 @@ namespace ProxyStation.Tests.Parser
         {
             var servers = parser.Parse(File.ReadAllText(GetFixturePath("General.conf")));
 
-            Assert.Equal(ProxyType.ShadowsocksR, servers[0].Type);
+            Assert.IsType<ShadowsocksRServer>(servers[0]);
             Assert.Equal("127.0.0.1", servers[0].Host);
             Assert.Equal(1234, servers[0].Port);
             Assert.Equal("aaabbb", ((ShadowsocksRServer)servers[0]).Password);
@@ -35,7 +35,7 @@ namespace ProxyStation.Tests.Parser
             Assert.False(((ShadowsocksRServer)servers[0]).UDPOverTCP);
             Assert.Equal(0, ((ShadowsocksRServer)servers[0]).UDPPort);
 
-            Assert.Equal(ProxyType.ShadowsocksR, servers[1].Type);
+            Assert.IsType<ShadowsocksRServer>(servers[1]);
             Assert.Equal("127.0.0.1", servers[1].Host);
             Assert.Equal(1234, servers[1].Port);
             Assert.Equal("aaabbb", ((ShadowsocksRServer)servers[1]).Password);
@@ -47,14 +47,14 @@ namespace ProxyStation.Tests.Parser
             Assert.False(((ShadowsocksRServer)servers[1]).UDPOverTCP);
             Assert.Equal(0, ((ShadowsocksRServer)servers[1]).UDPPort);
 
-            Assert.Equal(ProxyType.Shadowsocks, servers[2].Type);
+            Assert.IsType<ShadowsocksServer>(servers[2]);
             Assert.Equal("192.168.100.1", servers[2].Host);
             Assert.Equal(8888, servers[2].Port);
             Assert.Equal("test", ((ShadowsocksServer)servers[2]).Password);
             Assert.Equal("Example1", servers[2].Name);
             Assert.Equal("aes-128-gcm", ((ShadowsocksServer)servers[2]).Method);
 
-            Assert.Equal(ProxyType.Shadowsocks, servers[3].Type);
+            Assert.IsType<ShadowsocksServer>(servers[3]);
             Assert.Equal("192.168.100.1", servers[3].Host);
             Assert.Equal(8888, servers[3].Port);
             Assert.Equal("passwd", ((ShadowsocksServer)servers[3]).Password);
@@ -63,7 +63,7 @@ namespace ProxyStation.Tests.Parser
             Assert.IsType<SimpleObfsPluginOptions>(((ShadowsocksServer)servers[3]).PluginOptions);
             Assert.Equal(SimpleObfsPluginMode.HTTP, ((SimpleObfsPluginOptions)((ShadowsocksServer)servers[3]).PluginOptions).Mode);
 
-            Assert.Equal(ProxyType.Shadowsocks, servers[4].Type);
+            Assert.IsType<ShadowsocksServer>(servers[4]);
             Assert.Equal("192.168.100.1", servers[4].Host);
             Assert.Equal(8888, servers[4].Port);
             Assert.Equal("test", ((ShadowsocksServer)servers[4]).Password);

@@ -176,17 +176,19 @@ namespace ProxyStation.ProfileParser
             var sb = new StringBuilder();
             foreach (var server in servers)
             {
-                if (server.Type != ProxyType.Shadowsocks) continue;
-                var ssServer = server as ShadowsocksServer;
-                sb.Append($"{server.Name} = ss, {server.Host}, {server.Port}, encrypt-method={ssServer.Method}, password={ssServer.Password}");
-
-                if (ssServer.PluginOptions is SimpleObfsPluginOptions options)
+                if (server is ShadowsocksServer ssServer)
                 {
-                    var obfsHost = string.IsNullOrEmpty(options.Host) ? Constant.ObfsucationHost : options.Host;
-                    sb.Append($", obfs={SurgeParser.FormatSimpleObfsPluginMode(options.Mode)}, obfs-host={obfsHost}");
+                    sb.Append($"{server.Name} = ss, {server.Host}, {server.Port}, encrypt-method={ssServer.Method}, password={ssServer.Password}");
+
+                    if (ssServer.PluginOptions is SimpleObfsPluginOptions options)
+                    {
+                        var obfsHost = string.IsNullOrEmpty(options.Host) ? Constant.ObfsucationHost : options.Host;
+                        sb.Append($", obfs={SurgeParser.FormatSimpleObfsPluginMode(options.Mode)}, obfs-host={obfsHost}");
+                    }
+                    sb.Append(", udp-relay=true");
+                    sb.AppendLine();
+
                 }
-                sb.Append(", udp-relay=true");
-                sb.AppendLine();
             }
             return sb.ToString();
         }
