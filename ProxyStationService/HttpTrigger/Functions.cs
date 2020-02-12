@@ -70,7 +70,14 @@ namespace ProxyStation.HttpTrigger
                 if (profile.Type != ProfileType.Alias) break;
                 nextProfileName = profile.Source;
             }
+
             var sourceProfile = profileChain.Last();
+            var profileParser = ParserFactory.GetParser(sourceProfile.Type, logger, Functions.Downloader);
+            if (profileParser == null)
+            {
+                logger.LogError($"Profile parser for {sourceProfile.Type} is not implemented! Complete profile alias chain is `{Functions.ProfileChainToString(profileChain)}`");
+                return new ForbidResult();
+            }
 
             // Download content and determine if original profile should be returned
             var profileContent = await sourceProfile.Download(Functions.Downloader);
@@ -85,18 +92,12 @@ namespace ProxyStation.HttpTrigger
                 logger.LogInformation("Return original profile");
                 return new FileContentResult(Encoding.UTF8.GetBytes(profileContent), "text/plain; charset=UTF-8")
                 {
-                    FileDownloadName = profileChain.First().Name
+                    FileDownloadName = profileChain.First().Name + profileParser.ExtName(),
                 };
             }
 
             // Download template, parse profile and apply filters
             var template = await Functions.GetTemplate(templateUrlOrName);
-            var profileParser = ParserFactory.GetParser(sourceProfile.Type, logger, Functions.Downloader);
-            if (profileParser == null)
-            {
-                logger.LogError($"Profile parser for {sourceProfile.Type} is not implemented! Complete profile alias chain is `{Functions.ProfileChainToString(profileChain)}`");
-                return new ForbidResult();
-            }
             var servers = profileParser.Parse(profileContent);
             logger.LogInformation($"Download profile `{Functions.ProfileChainToString(profileChain)}` and get {servers.Length} servers");
             foreach (var profile in profileChain.AsEnumerable().Reverse())
@@ -130,10 +131,15 @@ namespace ProxyStation.HttpTrigger
 
             try
             {
-                var newProfile = targetProfileParser.Encode(servers, options);
+                var newProfile = targetProfileParser.Encode(options, servers, out Server[] encodedServer);
+                if (encodedServer.Length == 0)
+                {
+                    return new NoContentResult();
+                }
+
                 return new FileContentResult(Encoding.UTF8.GetBytes(newProfile), "text/plain; charset=UTF-8")
                 {
-                    FileDownloadName = profileChain.First().Name
+                    FileDownloadName = profileChain.First().Name + targetProfileParser.ExtName(),
                 };
             }
             catch (InvalidTemplateException)

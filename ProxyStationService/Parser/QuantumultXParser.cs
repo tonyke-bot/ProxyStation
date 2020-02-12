@@ -33,18 +33,18 @@ namespace ProxyStation.ProfileParser
             return template.Contains(QuantumultX.ServerListPlaceholder) && template.Contains(QuantumultX.ServerNamesPlaceholder);
         }
 
-        public string Encode(Server[] servers, EncodeOptions options)
+        public string Encode(EncodeOptions options, Server[] servers, out Server[] encodedServers)
         {
             if (!this.ValidateTemplate(options.Template))
             {
                 throw new InvalidTemplateException();
             }
-            var template = string.IsNullOrEmpty(options.Template) ? QuantumultX.Template : options.Template;
 
+            var template = string.IsNullOrEmpty(options.Template) ? QuantumultX.Template : options.Template;
             var profile = template
-                .Replace(QuantumultX.ServerListPlaceholder, this.EncodeProxyList(servers, out Server[] encodedServers))
+                .Replace(QuantumultX.ServerListPlaceholder, this.EncodeProxyList(servers, out encodedServers))
                 .Replace(QuantumultX.ServerNamesPlaceholder, string.Join(", ", encodedServers.Select(s => s.Name)));
-            this.logger.LogInformation($"Encoded {encodedServers.Length} servers.");
+
             return profile;
         }
 
@@ -125,7 +125,7 @@ namespace ProxyStation.ProfileParser
                     }
                     else
                     {
-                        this.logger.LogInformation($"Server `{server.Name}`({server.GetType()}) is ignored during encoding.");
+                        this.logger.LogInformation($"Server {server} is ignored.");
                     }
                     return serverLine;
                 })

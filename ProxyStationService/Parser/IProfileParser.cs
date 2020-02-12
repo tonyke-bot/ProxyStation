@@ -37,10 +37,11 @@ namespace ProxyStation.ProfileParser
         /// <summary>
         /// Combine and format the proxy servers and some snippets to generate a profile for proxy software 
         /// </summary>
-        /// <param name="servers">a list of proxy servers</param>
         /// <param name="options">encode options</param>
+        /// <param name="servers">a list of proxy servers</param>
+        /// <param name="encodedServers">a list of encoded proxy servers</param>
         /// <returns>the content of profile</returns>
-        string Encode(Server[] servers, EncodeOptions options);
+        string Encode(EncodeOptions options, Server[] servers, out Server[] encodedServers);
 
         /// <summary>
         /// Return extension name of a profile file

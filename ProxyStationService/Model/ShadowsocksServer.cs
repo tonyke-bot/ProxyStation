@@ -103,5 +103,7 @@ namespace ProxyStation.Model
         public bool FastOpen { get; set; }
 
         public SSPluginOptions PluginOptions { get; set; }
+
+        public override string ToString() => $"Shadowsocks<{this.Host}:{this.Port}>";
     }
 }

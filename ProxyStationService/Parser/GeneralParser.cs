@@ -192,24 +192,33 @@ namespace ProxyStation.ProfileParser
             return "ssr://" + WebSafeBase64Encode(Encoding.UTF8.GetBytes(serverInfo + "/?" + string.Join("&", otherInfos)));
         }
 
-        public string Encode(Server[] servers, EncodeOptions options)
+        public string Encode(EncodeOptions options, Server[] servers, out Server[] encodedServers)
         {
+            var encodedServerList = new List<Server>();
             var sb = new StringBuilder();
             sb.AppendLine($"REMARKS={options.ProfileName}");
             sb.AppendLine("");
 
             foreach (var server in servers)
             {
-                switch (server)
+                var serverLine = server switch
                 {
-                    case ShadowsocksServer ss:
-                        sb.AppendLine(EncodeShadowsocksServer(ss, options.ProfileName));
-                        break;
-                    case ShadowsocksRServer ssr:
-                        sb.AppendLine(EncodeShadowsocksRServer(ssr, options.ProfileName));
-                        break;
+                    ShadowsocksServer ss => EncodeShadowsocksServer(ss),
+                    ShadowsocksRServer ssr => EncodeShadowsocksRServer(ssr),
+                    _ => null,
+                };
+
+                if (string.IsNullOrWhiteSpace(serverLine))
+                {
+                    this.logger.LogInformation($"Server {server} is ignored.");
+                }
+                else
+                {
+                    encodedServerList.Add(server);
                 }
             }
+
+            encodedServers = encodedServerList.ToArray();
             return Convert.ToBase64String(Encoding.ASCII.GetBytes(sb.ToString()));
         }
 

@@ -16,7 +16,8 @@ namespace ProxyStation.ProfileParser
             this.parentParser = new QuantumultXParser(logger, downloader);
         }
 
-        public string Encode(Server[] servers, EncodeOptions options) => this.parentParser.EncodeProxyList(servers, out Server[] _);
+        public string Encode(EncodeOptions options, Server[] servers, out Server[] encodedServers)
+            => this.parentParser.EncodeProxyList(servers, out encodedServers);
 
         public Server[] Parse(string profile) => this.parentParser.ParseProxyList(profile);
 

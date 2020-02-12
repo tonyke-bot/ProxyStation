@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -52,7 +51,7 @@ namespace ProxyStation.ProfileParser
             return servers.ToArray();
         }
 
-        public string Encode(Server[] servers, EncodeOptions options)
+        public string Encode(EncodeOptions options, Server[] servers, out Server[] encodedServers)
         {
             var template = string.IsNullOrEmpty(options.Template) ? Clash.Template : options.Template;
             var deserializer = new DeserializerBuilder().Build();
@@ -76,13 +75,13 @@ namespace ProxyStation.ProfileParser
                 throw new InvalidTemplateException();
             }
 
+            var encodedServersList = new List<Server>();
             // template modification
             var proxySettings = servers.Select(s =>
             {
-                switch (s)
+                if (s is ShadowsocksServer ss)
                 {
-                    case ShadowsocksServer ss:
-                        var proxy = new Dictionary<string, object>() {
+                    var proxy = new Dictionary<string, object>() {
                             { "name", ss.Name },
                             { "type", "ss" },
                             { "server", ss.Host },
@@ -90,58 +89,61 @@ namespace ProxyStation.ProfileParser
                             { "cipher", ss.Method },
                             { "password", ss.Password },
                         };
-                        if (ss.UDPRelay) proxy.Add("udp", true);
+                    if (ss.UDPRelay) proxy.Add("udp", true);
 
-                        var pluginOptions = new Dictionary<string, object>();
-                        switch (ss.PluginOptions)
+                    var pluginOptions = new Dictionary<string, object>();
+                    if (ss.PluginOptions is SimpleObfsPluginOptions obfsOptions)
+                    {
+                        pluginOptions.Add("mode", obfsOptions.Mode.ToString().ToLower());
+                        if (obfsOptions.Mode == SimpleObfsPluginMode.HTTP)
                         {
-                            case SimpleObfsPluginOptions obfsOptions:
-                                pluginOptions.Add("mode", obfsOptions.Mode.ToString().ToLower());
-                                if (obfsOptions.Mode == SimpleObfsPluginMode.HTTP)
-                                {
-                                    pluginOptions.Add("host", string.IsNullOrEmpty(obfsOptions.Host) ? Constant.ObfsucationHost : obfsOptions.Host);
-                                }
-                                proxy.Add("plugin", "obfs");
-                                proxy.Add("plugin-opts", pluginOptions);
-                                break;
-                            case V2RayPluginOptions v2rayOptions:
-                                if (v2rayOptions.Mode == V2RayPluginMode.WebSocket)
-                                {
-                                    pluginOptions.Add("mode", v2rayOptions.Mode.ToString().ToLower());
-                                    pluginOptions.Add("host", v2rayOptions.Host);
-                                    pluginOptions.Add("path", string.IsNullOrEmpty(v2rayOptions.Path) ? "/" : v2rayOptions.Path);
-                                    if (v2rayOptions.SkipCertVerification) pluginOptions.Add("skip-cert-verify", true);
-                                    if (v2rayOptions.EnableTLS) pluginOptions.Add("tls", true);
-                                    if (v2rayOptions.Headers.Count > 0) pluginOptions.Add("headers", v2rayOptions.Headers);
-                                }
-                                else
-                                {
-                                    this.logger.LogError($"Clash doesn't support v2ray-plugin on QUIC. This server will be ignored");
-                                    return null;
-                                }
-                                proxy.Add("plugin", "v2ray-plugin");
-                                proxy.Add("plugin-opts", pluginOptions);
-                                break;
+                            pluginOptions.Add("host", string.IsNullOrEmpty(obfsOptions.Host) ? Constant.ObfsucationHost : obfsOptions.Host);
                         }
+                        proxy.Add("plugin", "obfs");
+                        proxy.Add("plugin-opts", pluginOptions);
+                    }
+                    else if (ss.PluginOptions is V2RayPluginOptions v2rayOptions)
+                    {
+                        if (v2rayOptions.Mode == V2RayPluginMode.WebSocket)
+                        {
+                            pluginOptions.Add("mode", v2rayOptions.Mode.ToString().ToLower());
+                            pluginOptions.Add("host", v2rayOptions.Host);
+                            pluginOptions.Add("path", string.IsNullOrEmpty(v2rayOptions.Path) ? "/" : v2rayOptions.Path);
+                            if (v2rayOptions.SkipCertVerification) pluginOptions.Add("skip-cert-verify", true);
+                            if (v2rayOptions.EnableTLS) pluginOptions.Add("tls", true);
+                            if (v2rayOptions.Headers.Count > 0) pluginOptions.Add("headers", v2rayOptions.Headers);
+                        }
+                        else
+                        {
+                            this.logger.LogError($"Clash doesn't support v2ray-plugin on QUIC. This server will be ignored");
+                            return null;
+                        }
+                        proxy.Add("plugin", "v2ray-plugin");
+                        proxy.Add("plugin-opts", pluginOptions);
+                    }
 
-                        return proxy;
+                    encodedServersList.Add(s);
+                    return proxy;
+
+                }
+                else
+                {
+                    this.logger.LogDebug($"Server {s} is ignored.");
+                    return null;
                 }
 
-                return null as object;
             });
             rootElement.Add("Proxy", proxySettings);
 
-            var proxyNames = proxySettings.Select(s => (s as Dictionary<string, object>)["name"]).ToArray();
+            var proxyNames = proxySettings.Select(s => s["name"]).ToArray();
             proxyGroupElement["proxies"] = proxyNames;
 
+            encodedServers = encodedServersList.ToArray();
             var serializer = new SerializerBuilder().Build();
             return serializer.Serialize(rootElement);
         }
 
-        public string ExtName()
-        {
-            return ".yaml";
-        }
+        public string ExtName() => ".yaml";
 
         public Server ParseShadowsocksServer(YamlMappingNode proxy)
         {

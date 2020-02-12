@@ -148,7 +148,7 @@ namespace ProxyStation.ProfileParser
             return ParseProxyList(plainProxies);
         }
 
-        public string Encode(Server[] servers, EncodeOptions options)
+        public string Encode(EncodeOptions options, Server[] servers, out Server[] encodedServers)
         {
             if (!this.ValidateTemplate(options.Template))
             {
@@ -167,12 +167,13 @@ namespace ProxyStation.ProfileParser
             }
 
             return template
-                .Replace(Surge.ServerListPlaceholder, EncodeProxyList(servers))
+                .Replace(Surge.ServerListPlaceholder, EncodeProxyList(servers, out encodedServers))
                 .Replace(Surge.ServerNamesPlaceholder, string.Join(", ", servers.Select(s => s.Name)));
         }
 
-        public string EncodeProxyList(Server[] servers)
+        public string EncodeProxyList(Server[] servers, out Server[] encodedServers)
         {
+            var encodedServerList = new List<Server>();
             var sb = new StringBuilder();
             foreach (var server in servers)
             {
@@ -187,9 +188,15 @@ namespace ProxyStation.ProfileParser
                     }
                     sb.Append(", udp-relay=true");
                     sb.AppendLine();
-
+                    encodedServerList.Add(server);
+                }
+                else
+                {
+                    this.logger.LogInformation($"Server {server} is ignored.");
                 }
             }
+
+            encodedServers = encodedServerList.ToArray();
             return sb.ToString();
         }
 

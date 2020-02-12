@@ -14,7 +14,8 @@ namespace ProxyStation.ProfileParser
 
         public Server[] Parse(string profile) => new SurgeParser(logger).ParseProxyList(profile);
 
-        public string Encode(Server[] servers, EncodeOptions options) => new SurgeParser(logger).EncodeProxyList(servers);
+        public string Encode(EncodeOptions options, Server[] servers, out Server[] encodedServers)
+            => new SurgeParser(logger).EncodeProxyList(servers, out encodedServers);
 
         public string ExtName() => "";
     }
