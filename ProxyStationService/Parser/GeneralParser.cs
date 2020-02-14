@@ -215,6 +215,7 @@ namespace ProxyStation.ProfileParser
                 else
                 {
                     encodedServerList.Add(server);
+                    sb.AppendLine(serverLine);
                 }
             }
 
