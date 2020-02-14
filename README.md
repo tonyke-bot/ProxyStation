@@ -85,3 +85,11 @@ Filters allow you to control outcome of servers list.
     "matching": "<suffix | prefix | contains(default), imply how to match the keyword>"
 }
 ```
+
+### Server Name Regular Expression Filter
+```jsonc
+{
+    "name": "regex",
+    "pattern": "<string, c# style regex>",
+}
+```

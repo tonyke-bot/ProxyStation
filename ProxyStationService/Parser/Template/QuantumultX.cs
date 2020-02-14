@@ -2,9 +2,7 @@
 {
     public static class QuantumultX
     {
-        public const string ServerListPlaceholder = "{% SERVER_LIST %}";
-
-        public const string ServerNamesPlaceholder = "{% SERVER_NAMES %}";
+        public const string ServerListUrlPlaceholder = "{% SERVER_LIST_URL %}";
 
         public readonly static string Template = $@"[general]
 excluded_routes = 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12, 100.64.0.0/10, 17.0.0.0/8
@@ -19,16 +17,15 @@ server = 1.2.4.8
 server = 182.254.116.116
 
 [policy]
-available=Auto Global, {ServerNamesPlaceholder}
 static=ADBlock, reject, direct, Global Traffic
 static=CN Traffic, direct, Global Traffic
 static=Global Traffic, Auto Global, direct, Proxy
 
-[server_local]
-{ServerListPlaceholder}
+[server_remote]
+{ServerListUrlPlaceholder}, as-policy=available, tag=Auto Global
 
 [filter_remote]
-https://raw.githubusercontent.com/GeQ1an/Rules/master/QuantumultX/Filter/AdBlock.list, tag=AdBlock, force-policy=Global Traffic
+https://raw.githubusercontent.com/GeQ1an/Rules/master/QuantumultX/Filter/AdBlock.list, tag=AdBlock, force-policy=ADBlock
 https://raw.githubusercontent.com/GeQ1an/Rules/master/QuantumultX/Filter/Netflix.list, tag=Netflix, force-policy=Global Traffic
 https://raw.githubusercontent.com/GeQ1an/Rules/master/QuantumultX/Filter/YouTube.list, tag=YouTube, force-policy=Global Traffic
 https://raw.githubusercontent.com/GeQ1an/Rules/master/QuantumultX/Filter/Microsoft.list, tag=Microsoft, force-policy=Global Traffic

@@ -18,16 +18,16 @@ namespace ProxyStation.ServerFilter
 
         public FilterMode Mode { get; set; }
 
-        public abstract bool ShouldKeep(Server server);
+        public abstract bool Match(Server server, ILogger logger);
 
-        public virtual void LoadOptions(YamlNode node)
+        public virtual void LoadOptions(YamlNode node, ILogger logger)
         {
-            switch (Yaml.GetStringOrDefaultFromYamlChildrenNode(node, "mode").ToLower())
+            Mode = (Yaml.GetStringOrDefaultFromYamlChildrenNode(node, "mode").ToLower()) switch
             {
-                case "whitelist": Mode = FilterMode.WhiteList; break;
-                case "blacklist":
-                default: Mode = FilterMode.BlackList; break;
-            }
+                "whitelist" => FilterMode.WhiteList,
+                "blacklist" => FilterMode.BlackList,
+                _ => FilterMode.BlackList,
+            };
         }
 
         public Server[] Do(Server[] servers, ILogger logger)
@@ -35,7 +35,8 @@ namespace ProxyStation.ServerFilter
             return servers
                 .Where(s =>
                 {
-                    var keep = this.ShouldKeep(s);
+                    var match = this.Match(s, logger);
+                    var keep = match == (this.Mode == FilterMode.WhiteList);
                     if (!keep)
                     {
                         logger.LogDebug($"[{{ComponentName}}] Server {s.Name} is removed.", this.GetType().ToString());

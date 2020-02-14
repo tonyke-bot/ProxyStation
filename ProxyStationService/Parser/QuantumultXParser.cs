@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +9,11 @@ using ProxyStation.Util;
 
 namespace ProxyStation.ProfileParser
 {
+    public class QuantumultXEncodeOptions : EncodeOptions
+    {
+        public string QuantumultXListUrl { get; set; }
+    }
+
     public class QuantumultXParser : IProfileParser
     {
         readonly ILogger logger;
@@ -29,7 +35,7 @@ namespace ProxyStation.ProfileParser
                 return true;
             }
 
-            return template.Contains(QuantumultX.ServerListPlaceholder) && template.Contains(QuantumultX.ServerNamesPlaceholder);
+            return template.Contains(QuantumultX.ServerListUrlPlaceholder);
         }
 
         public string Encode(EncodeOptions options, Server[] servers, out Server[] encodedServers)
@@ -39,10 +45,15 @@ namespace ProxyStation.ProfileParser
                 throw new InvalidTemplateException();
             }
 
+            if (!(options is QuantumultXEncodeOptions opts))
+            {
+                throw new ArgumentException();
+            }
+
+            this.EncodeProxyList(servers, out encodedServers);
+
             var template = string.IsNullOrEmpty(options.Template) ? QuantumultX.Template : options.Template;
-            var profile = template
-                .Replace(QuantumultX.ServerListPlaceholder, this.EncodeProxyList(servers, out encodedServers))
-                .Replace(QuantumultX.ServerNamesPlaceholder, string.Join(", ", encodedServers.Select(s => s.Name)));
+            var profile = template.Replace(QuantumultX.ServerListUrlPlaceholder, opts.QuantumultXListUrl);
 
             return profile;
         }

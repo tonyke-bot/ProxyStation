@@ -50,7 +50,7 @@ namespace ProxyStation.HttpTrigger
             var nextProfileName = Misc.KebabCase2PascalCase(profileName);
             while (true)
             {
-                var profile = ProfileFactory.Get(nextProfileName);
+                var profile = ProfileFactory.Get(nextProfileName, logger);
                 if (profile == null)
                 {
                     var chainString = Functions.ProfileChainToString(profileChain);
@@ -120,9 +120,13 @@ namespace ProxyStation.HttpTrigger
             logger.LogInformation($"{servers.Length} will be encoded");
             var options = targetProfileParser switch
             {
-                SurgeParser surgeParser => new SurgeEncodeOptions()
+                SurgeParser _ => new SurgeEncodeOptions()
                 {
                     ProfileURL = requestUrl
+                },
+                QuantumultXParser _ => new QuantumultXEncodeOptions()
+                {
+                    QuantumultXListUrl = Functions.GetCurrentURL(req) + "-list",
                 },
                 _ => new EncodeOptions(),
             };
@@ -169,7 +173,7 @@ namespace ProxyStation.HttpTrigger
             return string.Join("->", profileChain.Select(s => s.Name));
         }
 
-        public static string GetCurrentURL(HttpRequest req) => $"{req.Scheme}://{Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME")}{req.Path}";
+        public static string GetCurrentURL(HttpRequest req) => $"{req.Scheme}://{req.Host}{req.Path}";
 
         public static ProfileType GuessTypeFromUserAgent(string userAgent)
         {

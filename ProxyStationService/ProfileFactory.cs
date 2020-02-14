@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Microsoft.Extensions.Logging;
 using ProxyStation.Model;
 using ProxyStation.ServerFilter;
 using ProxyStation.Util;
@@ -29,7 +30,7 @@ namespace ProxyStation
             };
         }
 
-        public static Profile Get(string profileName)
+        public static Profile Get(string profileName, ILogger logger)
         {
             var data = ProfileFactory.environmentManager.Get(profileName);
             if (String.IsNullOrEmpty(data)) return null;
@@ -57,7 +58,7 @@ namespace ProxyStation
                     if (filterNode.NodeType != YamlNodeType.Mapping) continue;
                     var filter = FilterFactory.GetFilter(Yaml.GetStringOrDefaultFromYamlChildrenNode(filterNode, "name"));
                     if (filter == null) continue;
-                    filter.LoadOptions(filterNode);
+                    filter.LoadOptions(filterNode, logger);
                     profile.Filters.Add(filter);
                 }
             }

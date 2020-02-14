@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using ProxyStation.Model;
 using ProxyStation.Util;
 using YamlDotNet.RepresentationModel;
@@ -18,32 +20,30 @@ namespace ProxyStation.ServerFilter
 
         public NameFilterMatching Matching { get; set; }
 
-        public override bool ShouldKeep(Server server)
+        public override bool Match(Server server, ILogger logger)
         {
-            var match = this.Matching switch
+            return this.Matching switch
             {
                 NameFilterMatching.HasPrefix => server.Name.StartsWith(Keyword),
                 NameFilterMatching.HasSuffix => server.Name.EndsWith(Keyword),
                 NameFilterMatching.Contains => server.Name.Contains(Keyword),
-                _ => throw new System.NotImplementedException(),
+                _ => throw new NotImplementedException(),
             };
-
-            return match == (Mode == FilterMode.WhiteList);
         }
 
-        public override void LoadOptions(YamlNode node)
+        public override void LoadOptions(YamlNode node, ILogger logger)
         {
-            base.LoadOptions(node);
+            base.LoadOptions(node, logger);
             if (node == null || node.NodeType != YamlNodeType.Mapping) return;
 
             Keyword = Yaml.GetStringOrDefaultFromYamlChildrenNode(node, "keyword");
-            switch (Yaml.GetStringOrDefaultFromYamlChildrenNode(node, "matching"))
+            Matching = (Yaml.GetStringOrDefaultFromYamlChildrenNode(node, "matching")) switch
             {
-                case "prefix": Matching = NameFilterMatching.HasPrefix; break;
-                case "suffix": Matching = NameFilterMatching.HasSuffix; break;
-                case "contains":
-                default: Matching = NameFilterMatching.Contains; break;
-            }
+                "prefix" => NameFilterMatching.HasPrefix,
+                "suffix" => NameFilterMatching.HasSuffix,
+                "contains" => NameFilterMatching.Contains,
+                _ => NameFilterMatching.Contains,
+            };
         }
     }
 }

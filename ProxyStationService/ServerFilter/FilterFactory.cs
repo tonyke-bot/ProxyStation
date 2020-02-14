@@ -7,6 +7,7 @@ namespace ProxyStation.ServerFilter
             return name switch
             {
                 "name" => new NameFilter(),
+                "regex" => new RegexFilter(),
                 _ => null,
             };
         }

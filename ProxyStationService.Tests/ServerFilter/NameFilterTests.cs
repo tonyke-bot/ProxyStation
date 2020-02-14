@@ -18,9 +18,9 @@ namespace ProxyStation.Tests.ServerFilter
 
         public NameFilterTests(ITestOutputHelper output)
         {
-            logger = output.BuildLogger();
-            filter = new NameFilter();
-            servers = new Server[]{
+            this.logger = output.BuildLogger();
+            this.filter = new NameFilter();
+            this.servers = new Server[]{
                 new ShadowsocksServer() { Name = "goodserver 1" },
                 new ShadowsocksServer() { Name = "goodserver 2" },
                 new ShadowsocksServer() { Name = "goodserver 3" },
@@ -41,7 +41,7 @@ matching: prefix
             var yaml = new YamlStream();
             yaml.Load(new StringReader(optionsYaml));
 
-            filter.LoadOptions(yaml.Documents[0].RootNode);
+            filter.LoadOptions(yaml.Documents[0].RootNode, this.logger);
             Assert.Equal(FilterMode.WhiteList, filter.Mode);
             Assert.Equal(NameFilterMatching.HasPrefix, filter.Matching);
             Assert.Equal("goodserver", filter.Keyword);
@@ -62,7 +62,7 @@ matching: prefix
             var yaml = new YamlStream();
             yaml.Load(new StringReader(optionsYaml));
 
-            filter.LoadOptions(yaml.Documents[0].RootNode);
+            filter.LoadOptions(yaml.Documents[0].RootNode, this.logger);
             Assert.Equal(FilterMode.BlackList, filter.Mode);
             Assert.Equal(NameFilterMatching.HasPrefix, filter.Matching);
             Assert.Equal("badserver", filter.Keyword);
@@ -83,7 +83,7 @@ matching: contains
             var yaml = new YamlStream();
             yaml.Load(new StringReader(optionsYaml));
 
-            filter.LoadOptions(yaml.Documents[0].RootNode);
+            filter.LoadOptions(yaml.Documents[0].RootNode, this.logger);
             Assert.Equal(FilterMode.WhiteList, filter.Mode);
             Assert.Equal(NameFilterMatching.Contains, filter.Matching);
             Assert.Equal("server ", filter.Keyword);
