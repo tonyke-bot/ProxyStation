@@ -40,7 +40,7 @@ namespace ProxyStation.Tests.HttpTrigger
             Functions.Downloader = downloader;
 
             environmentManager.Get(profileName).Returns(profileConfig);
-            downloader.Download(profileUrl).Returns(profileContent);
+            downloader.Download(this.logger, profileUrl).Returns(profileContent);
 
             var result = await Functions.GetTrain(request, profileName, "surge-list", this.logger);
             Assert.IsType<FileContentResult>(result);
@@ -65,7 +65,7 @@ namespace ProxyStation.Tests.HttpTrigger
             Functions.Downloader = downloader;
 
             environmentManager.Get(profileName).Returns(profileConfig);
-            downloader.Download(profileUrl).Returns(profileContent);
+            downloader.Download(this.logger, profileUrl).Returns(profileContent);
 
             var result = await Functions.GetTrain(request, profileName, "original", this.logger);
             Assert.IsType<FileContentResult>(result);
@@ -102,7 +102,7 @@ namespace ProxyStation.Tests.HttpTrigger
             environmentManager.Get(profileName1).Returns(profileConfig1);
             environmentManager.Get(profileName2).Returns(profileConfig2);
             environmentManager.Get(profileName3).Returns(profileConfig3);
-            downloader.Download(profileUrl).Returns(profileContent);
+            downloader.Download(this.logger, profileUrl).Returns(profileContent);
 
             var result = await Functions.GetTrain(request, "test-profile-alias-3", "surge-list", this.logger);
             Assert.IsType<FileContentResult>(result);
@@ -154,8 +154,8 @@ namespace ProxyStation.Tests.HttpTrigger
 
             request.Query.Returns(new QueryCollection(new Dictionary<String, StringValues>() { { "template", templateUrl } }));
             environmentManager.Get(profileName).Returns(profileConfig);
-            downloader.Download(profileUrl).Returns(profileContent);
-            downloader.Download(templateUrl).Returns(templateContent);
+            downloader.Download(this.logger, profileUrl).Returns(profileContent);
+            downloader.Download(this.logger, templateUrl).Returns(templateContent);
 
             var result = await Functions.GetTrain(request, profileName, "clash", this.logger);
             Assert.IsType<BadRequestResult>(result);
@@ -182,8 +182,8 @@ namespace ProxyStation.Tests.HttpTrigger
 
             request.Query.Returns(new QueryCollection(new Dictionary<String, StringValues>() { { "template", templateUrl } }));
             environmentManager.Get(profileName).Returns(profileConfig);
-            downloader.Download(profileUrl).Returns(profileContent);
-            downloader.Download(templateUrl).Returns(templateContent);
+            downloader.Download(this.logger, profileUrl).Returns(profileContent);
+            downloader.Download(this.logger, templateUrl).Returns(templateContent);
 
             var result = await Functions.GetTrain(request, profileName, "clash", this.logger);
             Assert.IsType<FileContentResult>(result);
@@ -212,8 +212,8 @@ namespace ProxyStation.Tests.HttpTrigger
 
             request.Query.Returns(new QueryCollection(new Dictionary<String, StringValues>() { { "template", templateUrl } }));
             environmentManager.Get(profileName).Returns(profileConfig);
-            downloader.Download(profileUrl).Returns(profileContent);
-            downloader.Download(templateUrl).Returns(templateContent);
+            downloader.Download(this.logger, profileUrl).Returns(profileContent);
+            downloader.Download(this.logger, templateUrl).Returns(templateContent);
 
             var result = await Functions.GetTrain(request, profileName, "surge", this.logger);
             Assert.IsType<FileContentResult>(result);
@@ -244,14 +244,14 @@ namespace ProxyStation.Tests.HttpTrigger
             request.Query.Returns(new QueryCollection(new Dictionary<String, StringValues>() { { "template", templateName } }));
             environmentManager.Get(profileName).Returns(profileConfig);
             environmentManager.Get("Template" + templateName).Returns(templateUrl);
-            downloader.Download(profileUrl).Returns(profileContent);
-            downloader.Download(templateUrl).Returns(templateContent);
+            downloader.Download(this.logger, profileUrl).Returns(profileContent);
+            downloader.Download(this.logger, templateUrl).Returns(templateContent);
 
             var result = await Functions.GetTrain(request, profileName, "surge", this.logger);
             Assert.IsType<FileContentResult>(result);
 
 #pragma warning disable 4014
-            downloader.Received().Download(templateUrl);
+            downloader.Received().Download(this.logger, templateUrl);
 #pragma warning restore 4014
         }
 
@@ -271,7 +271,7 @@ namespace ProxyStation.Tests.HttpTrigger
             Functions.Downloader = downloader;
 
             environmentManager.Get(profileName).Returns(profileConfig);
-            downloader.Download(profileUrl).Returns(profileContent);
+            downloader.Download(this.logger, profileUrl).Returns(profileContent);
 
             var result = await Functions.GetTrain(request, profileName, "quantumult-x", this.logger);
             Assert.IsType<FileContentResult>(result);

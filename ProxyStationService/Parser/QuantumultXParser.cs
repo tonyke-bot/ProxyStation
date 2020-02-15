@@ -28,6 +28,7 @@ namespace ProxyStation.ProfileParser
             this.logger = logger;
             this.fallbackParser = new GeneralParser(logger);
         }
+
         public bool ValidateTemplate(string template)
         {
             if (string.IsNullOrEmpty(template))
@@ -165,7 +166,7 @@ namespace ProxyStation.ProfileParser
                 .Select(async url =>
                 {
                     this.logger.LogInformation("Downloading remote servers from " + url);
-                    var plainProxies = await this.downloader.Download(url);
+                    var plainProxies = await this.downloader.Download(this.logger, url);
 
                     var remoteServers = this.ParseProxyList(plainProxies);
                     this.logger.LogInformation($"Get {remoteServers.Length} remote servers from {url}");

@@ -16,10 +16,35 @@ namespace ProxyStation.HttpTrigger
 {
     public static class Functions
     {
-        public static IDownloader Downloader { get; set; } = new Downloader();
-
         public static IEnvironmentManager EnvironmentManager { get; set; } = new EnvironmentManager();
 
+        private static IDownloader downloader;
+
+        public static IDownloader Downloader
+        {
+            get
+            {
+                if (Functions.downloader == null)
+                {
+                    var useCache = Functions.EnvironmentManager.Get("USE_CACHE") == "1";
+                    if (useCache)
+                    {
+                        var connectionString = Functions.EnvironmentManager.Get("AzureWebJobsStorage");
+                        Functions.downloader = new Downloader(connectionString);
+                    }
+                    else
+                    {
+                        Functions.downloader = new Downloader();
+                    }
+                }
+
+                return Functions.downloader;
+            }
+            set
+            {
+                Functions.downloader = value;
+            }
+        }
         #region Functions
 
         [FunctionName("GetTrain")]
@@ -80,7 +105,7 @@ namespace ProxyStation.HttpTrigger
             }
 
             // Download content and determine if original profile should be returned
-            var profileContent = await sourceProfile.Download(Functions.Downloader);
+            var profileContent = await sourceProfile.Download(logger, Functions.Downloader);
             if (targetProfileParser is NullParser)
             {
                 if (!sourceProfile.AllowDirectAccess)
@@ -97,7 +122,7 @@ namespace ProxyStation.HttpTrigger
             }
 
             // Download template, parse profile and apply filters
-            var template = await Functions.GetTemplate(templateUrlOrName);
+            var template = await Functions.GetTemplate(logger, templateUrlOrName);
             var servers = profileParser.Parse(profileContent);
             logger.LogInformation($"Download profile `{Functions.ProfileChainToString(profileChain)}` and get {servers.Length} servers");
             foreach (var profile in profileChain.AsEnumerable().Reverse())
@@ -154,7 +179,7 @@ namespace ProxyStation.HttpTrigger
 
         #endregion Functions
 
-        public static async Task<string> GetTemplate(string templateUrlOrName)
+        public static async Task<string> GetTemplate(ILogger logger, string templateUrlOrName)
         {
             if (!string.IsNullOrEmpty(templateUrlOrName) && !templateUrlOrName.StartsWith("https://"))
             {
@@ -163,7 +188,7 @@ namespace ProxyStation.HttpTrigger
 
             if (!string.IsNullOrEmpty(templateUrlOrName) && templateUrlOrName.StartsWith("https://"))
             {
-                return await Functions.Downloader.Download(templateUrlOrName);
+                return await Functions.Downloader.Download(logger, templateUrlOrName);
             }
             return null;
         }

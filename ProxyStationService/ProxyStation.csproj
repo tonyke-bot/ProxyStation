@@ -5,6 +5,7 @@
     <RootNamespace>ProxyStation</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.3.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="3.0.4" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.0" />
     <PackageReference Include="MimeTypes" Version="1.1.0">
