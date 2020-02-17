@@ -20,7 +20,7 @@ allow-wifi-access = false
 hide-apple-request=true
 
 [Proxy]
-sadfasd= = ss, 12381293, 123, encrypt-method=aes-128-gcm, password=1231341, obfs=http, obfs-host=2341324124, udp-relay=true, interface=asdasd, allow-other-interface=true, tfo=true
+sadfasd = ss, 12381293, 123, encrypt-method=aes-128-gcm, password=1231341, obfs=http, obfs-host=2341324124, udp-relay=true, interface=asdasd, allow-other-interface=true, tfo=true
 香港高级 BGP 中继 5 = custom, hk5.edge.iplc.app, 155, rc4-md5, asdads, http://example.com/, udp-relay=true
 🇭🇰 中国杭州 -> 香港 01 | IPLC = ss, 123.123.123.123, 10086, encrypt-method=xchacha20-ietf-poly1305, password=gasdas, obfs=tls, obfs-host=download.windowsupdate.com, udp-relay=true
 sadfasd=custom, 12381293, 123, encrypt-method=aes-128-gcm, password=1231341, obfs=http, obfs-host=2341324124, udp-relay=true, interface=asdasd, allow-other-interface=true, tfo=true
@@ -35,10 +35,10 @@ FINAL,RIXCLOUD,dns-failed
 
 ";
 
-        public readonly static string SurgeListProfile1 = @"sadfasd= = ss, 12381293, 123, encrypt-method=aes-128-gcm, password=1231341, obfs=http, obfs-host=2341324124, udp-relay=true
+        public readonly static string SurgeListProfile1 = @"sadfasd = ss, 12381293, 123, encrypt-method=aes-128-gcm, password=1231341, obfs=http, obfs-host=2341324124, udp-relay=true, tfo=true
 香港高级 BGP 中继 5 = ss, hk5.edge.iplc.app, 155, encrypt-method=rc4-md5, password=asdads, udp-relay=true
 🇭🇰 中国杭州 -> 香港 01 | IPLC = ss, 123.123.123.123, 10086, encrypt-method=xchacha20-ietf-poly1305, password=gasdas, obfs=tls, obfs-host=download.windowsupdate.com, udp-relay=true
-sadfasd = ss, 12381293, 123, encrypt-method=aes-128-gcm, password=1231341, obfs=http, obfs-host=2341324124, udp-relay=true
+sadfasd = ss, 12381293, 123, encrypt-method=aes-128-gcm, password=1231341, obfs=http, obfs-host=2341324124, udp-relay=true, tfo=true
 ";
 
         public readonly static string ClashTemplate1 = @"port: 7890
@@ -87,7 +87,7 @@ Proxy Group:
   url: http://www.gstatic.com/generate_204
   interval: 300
   proxies:
-  - sadfasd=
+  - sadfasd
   - 香港高级 BGP 中继 5
   - ""\U0001F1ED\U0001F1F0 中国杭州 -> 香港 01 | IPLC""
   - sadfasd
@@ -107,7 +107,7 @@ Rule:
 - MATCH,Default
 - FINAL,Default
 Proxy:
-- name: sadfasd=
+- name: sadfasd
   type: ss
   server: 12381293
   port: 123
@@ -175,15 +175,15 @@ port = 8888
 socks-port = 8889
 
 [Proxy]
-sadfasd= = ss, 12381293, 123, encrypt-method=aes-128-gcm, password=1231341, obfs=http, obfs-host=2341324124, udp-relay=true
+sadfasd = ss, 12381293, 123, encrypt-method=aes-128-gcm, password=1231341, obfs=http, obfs-host=2341324124, udp-relay=true, tfo=true
 香港高级 BGP 中继 5 = ss, hk5.edge.iplc.app, 155, encrypt-method=rc4-md5, password=asdads, udp-relay=true
 🇭🇰 中国杭州 -> 香港 01 | IPLC = ss, 123.123.123.123, 10086, encrypt-method=xchacha20-ietf-poly1305, password=gasdas, obfs=tls, obfs-host=download.windowsupdate.com, udp-relay=true
-sadfasd = ss, 12381293, 123, encrypt-method=aes-128-gcm, password=1231341, obfs=http, obfs-host=2341324124, udp-relay=true
+sadfasd = ss, 12381293, 123, encrypt-method=aes-128-gcm, password=1231341, obfs=http, obfs-host=2341324124, udp-relay=true, tfo=true
 
 
 [Proxy Group]
 Default = select, Proxy, DIRECT
-Proxy = url-test, sadfasd=, 香港高级 BGP 中继 5, 🇭🇰 中国杭州 -> 香港 01 | IPLC, sadfasd, url=http://captive.apple.com, interval=600, tolerance=200
+Proxy = url-test, sadfasd, 香港高级 BGP 中继 5, 🇭🇰 中国杭州 -> 香港 01 | IPLC, sadfasd, url=http://captive.apple.com, interval=600, tolerance=200
 
 [Rule]
 RULE-SET,LAN,DIRECT

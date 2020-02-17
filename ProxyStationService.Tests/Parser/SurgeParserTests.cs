@@ -1,18 +1,18 @@
 using System.IO;
-using Microsoft.Extensions.Logging;
 using ProxyStation.Model;
 using ProxyStation.ProfileParser;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace ProxyStation.Tests.Parser
 {
     public class SurgeParserTests
     {
-        SurgeParser parser;
+        readonly SurgeParser parser;
 
-        public SurgeParserTests()
+        public SurgeParserTests(ITestOutputHelper helper)
         {
-            parser = new SurgeParser(new LoggerFactory().CreateLogger("test"));
+            parser = new SurgeParser(helper.BuildLogger());
         }
 
         private string GetFixturePath(string relativePath) => Path.Combine("../../..", "./Parser/Fixtures", relativePath);
@@ -26,7 +26,7 @@ namespace ProxyStation.Tests.Parser
             Assert.Equal("12381293", servers[0].Host);
             Assert.Equal(123, servers[0].Port);
             Assert.Equal("1231341", ((ShadowsocksServer)servers[0]).Password);
-            Assert.Equal("sadfasd=", servers[0].Name);
+            Assert.Equal("sadfasd", servers[0].Name);
             Assert.Equal("aes-128-gcm", ((ShadowsocksServer)servers[0]).Method);
             Assert.IsType<SimpleObfsPluginOptions>(((ShadowsocksServer)servers[0]).PluginOptions);
             Assert.Equal(SimpleObfsPluginMode.HTTP, (((ShadowsocksServer)servers[0]).PluginOptions as SimpleObfsPluginOptions).Mode);

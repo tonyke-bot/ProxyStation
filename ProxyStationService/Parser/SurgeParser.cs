@@ -25,13 +25,6 @@ namespace ProxyStation.ProfileParser
             this.logger = logger;
         }
 
-        public static Regex profileSectionRegex = new Regex(@"^\[([^\]]*?)\]$",
-                RegexOptions.Compiled | RegexOptions.Multiline);
-        public static Regex proxyRegex = new Regex(@"^(.*?)\s*\=\s*(\w.*?)$",
-                RegexOptions.Compiled);
-
-        static string TrimPrefix(string str, string prefix) => str.StartsWith(prefix) ? str.Substring(prefix.Length) : str;
-
         public bool ValidateTemplate(string template)
         {
             if (string.IsNullOrEmpty(template))
@@ -40,6 +33,290 @@ namespace ProxyStation.ProfileParser
             }
 
             return template.Contains(Surge.ServerListPlaceholder) && template.Contains(Surge.ServerNamesPlaceholder);
+        }
+
+        public Server ParseSnellServer(string[] properties)
+        {
+            // snell, [SERVER ADDRESS], [GENERATED PORT], psk=[GENERATED PSK], obfs=http
+            if (properties.Length < 3)
+            {
+                this.logger.LogError("Invaild surge shadowsocks proxy: " + string.Join(", ", properties));
+                return null;
+            }
+
+            if (!int.TryParse(properties[2].Trim(), out int port))
+            {
+                this.logger.LogError("Invalid snell port: ", properties[2].Trim());
+                return null;
+            };
+
+
+            var server = new SnellServer()
+            {
+                Host = properties[1].Trim(),
+                Port = port,
+            };
+
+            var keyValues = properties
+                .Skip(3)
+                .Select(p => p.Trim().Split("=", 2))
+                .Where(p => p.Length == 2)
+                .Select(p => new string[] { p[0].TrimEnd(), p[1].TrimStart() });
+
+            string obfs = null, obfsHost = null;
+            foreach (var keyValue in keyValues)
+            {
+                var key = keyValue[0];
+                if (key == "psk" || key == "password")
+                {
+                    server.Password = keyValue[1];
+                }
+                else if (key == "obfs")
+                {
+                    obfs = keyValue[1];
+                }
+                else if (key == "obfs-host")
+                {
+                    obfsHost = keyValue[1];
+                }
+                else if (key == "tfo")
+                {
+                    server.FastOpen = keyValue[1] == "true";
+                }
+                else if (key != "interface" && key != "allow-other-interface")
+                {
+                    this.logger.LogWarning($"Unrecognized snell options {key}={keyValue[1]}");
+                }
+            }
+
+            if (server.Password == null)
+            {
+                this.logger.LogError("Snell password is missing!");
+                return null;
+            }
+
+            var obfsMode = default(SnellObfuscationMode);
+            switch (obfs)
+            {
+                case "http":
+                    obfsMode = SnellObfuscationMode.HTTP;
+                    break;
+                case "tls":
+                    obfsMode = SnellObfuscationMode.TLS;
+                    break;
+                case null:
+                    obfsMode = SnellObfuscationMode.None;
+                    obfsHost = null;
+                    break;
+                default:
+                    this.logger.LogError("Unknown snell obfusaction mode: " + obfs);
+                    return null;
+            }
+
+            server.ObfuscationMode = obfsMode;
+            server.ObfuscationHost = obfsHost;
+            return server;
+        }
+
+        public Server ParseClassicShadowsocksServer(string[] properties)
+        {
+            if (properties.Length < 5)
+            {
+                this.logger.LogError("Invaild surge shadowsocks proxy: " + string.Join(", ", properties));
+                return null;
+            }
+
+            if (!int.TryParse(properties[2].Trim(), out int port))
+            {
+                this.logger.LogError("Invalid shadowsocks port: ", properties[2].Trim());
+                return null;
+            };
+
+
+            var server = new ShadowsocksServer()
+            {
+                Host = properties[1].Trim(),
+                Port = port,
+                Method = properties[3].Trim(),
+                Password = properties[4].Trim(),
+            };
+
+            var keyValues = properties
+                .Skip(3)
+                .Select(p => p.Trim().Split("=", 2))
+                .Where(p => p.Length == 2)
+                .Select(p => new string[] { p[0].TrimEnd(), p[1].TrimStart() });
+
+            string obfs = null, obfsHost = null;
+            foreach (var keyValue in keyValues)
+            {
+                var key = keyValue[0];
+                if (key == "psk" || key == "password")
+                {
+                    server.Password = keyValue[1];
+                }
+                else if (key == "encrypt-method")
+                {
+                    server.Method = keyValue[1];
+                }
+                else if (key == "obfs")
+                {
+                    obfs = keyValue[1];
+                }
+                else if (key == "obfs-host")
+                {
+                    obfsHost = keyValue[1];
+                }
+                else if (key == "tfo")
+                {
+                    server.FastOpen = keyValue[1] == "true";
+                }
+                else if (key == "udp-relay")
+                {
+                    server.UDPRelay = keyValue[1] == "true";
+                }
+                else if (key != "interface" && key != "allow-other-interface")
+                {
+                    this.logger.LogWarning($"Unrecognized shadowsocks options {key}={keyValue[1]}");
+                }
+            }
+
+            if (server.Password == null)
+            {
+                this.logger.LogError("Shadowsocks password is missing!");
+                return null;
+            }
+
+            if (server.Method == null)
+            {
+                this.logger.LogError("Shadowsocks method is missing!");
+                return null;
+            }
+
+            switch (obfs)
+            {
+                case "http":
+                    server.PluginOptions = new SimpleObfsPluginOptions()
+                    {
+                        Mode = SimpleObfsPluginMode.HTTP,
+                        Host = obfsHost,
+                    };
+                    break;
+                case "tls":
+                    server.PluginOptions = new SimpleObfsPluginOptions()
+                    {
+                        Mode = SimpleObfsPluginMode.TLS,
+                        Host = obfsHost,
+                    };
+                    break;
+                case null:
+                    break;
+                default:
+                    this.logger.LogError("Unknown shadowsocks obfusaction mode: " + obfs);
+                    return null;
+            }
+
+            return server;
+        }
+
+        public Server ParseShadowsocksServer(string[] properties)
+        {
+            if (properties.Length < 3)
+            {
+                this.logger.LogError("Invaild surge shadowsocks proxy: " + string.Join(", ", properties));
+                return null;
+            }
+
+            if (!int.TryParse(properties[2].Trim(), out int port))
+            {
+                this.logger.LogError("Invalid shadowsocks port: ", properties[2].Trim());
+                return null;
+            };
+
+
+            var server = new ShadowsocksServer()
+            {
+                Host = properties[1].Trim(),
+                Port = port,
+            };
+
+            var keyValues = properties
+                .Skip(3)
+                .Select(p => p.Trim().Split("=", 2))
+                .Where(p => p.Length == 2)
+                .Select(p => new string[] { p[0].TrimEnd(), p[1].TrimStart() });
+
+            string obfs = null, obfsHost = null;
+            foreach (var keyValue in keyValues)
+            {
+                var key = keyValue[0];
+                if (key == "psk" || key == "password")
+                {
+                    server.Password = keyValue[1];
+                }
+                else if (key == "encrypt-method")
+                {
+                    server.Method = keyValue[1];
+                }
+                else if (key == "obfs")
+                {
+                    obfs = keyValue[1];
+                }
+                else if (key == "obfs-host")
+                {
+                    obfsHost = keyValue[1];
+                }
+                else if (key == "tfo")
+                {
+                    server.FastOpen = keyValue[1] == "true";
+                }
+                else if (key == "udp-relay")
+                {
+                    server.UDPRelay = keyValue[1] == "true";
+                }
+                else if (key != "interface" && key != "allow-other-interface")
+                {
+                    this.logger.LogWarning($"Unrecognized shadowsocks options {key}={keyValue[1]}");
+                }
+            }
+
+            if (server.Password == null)
+            {
+                this.logger.LogError("Shadowsocks password is missing!");
+                return null;
+            }
+
+            if (server.Method == null)
+            {
+                this.logger.LogError("Shadowsocks method is missing!");
+                return null;
+            }
+
+            switch (obfs)
+            {
+                case "http":
+                    server.PluginOptions = new SimpleObfsPluginOptions()
+                    {
+                        Mode = SimpleObfsPluginMode.HTTP,
+                        Host = obfsHost,
+                    };
+                    break;
+                case "tls":
+                    server.PluginOptions = new SimpleObfsPluginOptions()
+                    {
+                        Mode = SimpleObfsPluginMode.TLS,
+                        Host = obfsHost,
+                    };
+                    break;
+                case null:
+                    break;
+                default:
+                    this.logger.LogError("Unknown shadowsocks obfusaction mode: " + obfs);
+                    return null;
+            }
+
+
+            return server;
         }
 
         public Server[] ParseProxyList(string profile)
@@ -51,73 +328,32 @@ namespace ProxyStation.ProfileParser
 
             foreach (var proxy in plainProxies)
             {
-                var trimed = proxy.Trim();
-                if (trimed.StartsWith("#")) continue;
-
-                var match = proxyRegex.Match(proxy);
-                if (!match.Success) continue;
-
-                var serverInfos = match.Groups[2].Value.Trim().Split(",");
-                switch (serverInfos[0].Trim().ToLower())
+                var parts = proxy.Trim().Split("=", 2);
+                if (parts.Length != 2)
                 {
-                    case "ss":
-                    case "custom":
-                        break;
-                    default:
-                        continue;
+                    this.logger.LogError("Ignore invalid surge proxy line: " + proxy);
                 }
 
-                var server = new ShadowsocksServer
+                var name = parts[0];
+                var properties = parts[1].Split(",");
+
+                Server server = properties[0].Trim() switch
                 {
-                    Name = match.Groups[1].Value,
-                    Host = (serverInfos[1] ?? "").Trim(),
-                    Method = TrimPrefix((serverInfos[3] ?? "").Trim(), "encrypt-method="),
-                    Password = TrimPrefix((serverInfos[4] ?? "").Trim(), "password=")
+                    "ss" => this.ParseShadowsocksServer(properties),
+                    "custom" => this.ParseClassicShadowsocksServer(properties),
+                    "snell" => this.ParseSnellServer(properties),
+                    _ => null,
                 };
-                if (int.TryParse(serverInfos[2] ?? "", out int port))
+
+                if (server == null)
                 {
-                    server.Port = port;
+                    this.logger.LogError("Ignore unsupported protocol: " + properties[0]);
                 }
-
-                var pluginOptions = new SimpleObfsPluginOptions();
-
-                // Parse plugin
-                for (var i = 5; i < serverInfos.Length; i++)
+                else
                 {
-                    var trimedInfo = serverInfos[i].Trim();
-                    if (trimedInfo.StartsWith("obfs="))
-                    {
-                        if (SimpleObfsPluginOptions.TryParseMode(trimedInfo.Substring("obfs=".Length).Trim(), out SimpleObfsPluginMode mode))
-                        {
-                            server.PluginOptions = pluginOptions;
-                            pluginOptions.Mode = mode;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    else if (string.IsNullOrEmpty(pluginOptions.Host) && trimedInfo.StartsWith("obfs-host="))
-                    {
-                        pluginOptions.Host = trimedInfo.Substring("obfs-host=".Length).TrimStart();
-                    }
-                    else if (!server.UDPRelay && trimedInfo.StartsWith("udp-relay="))
-                    {
-                        server.UDPRelay = trimedInfo.Substring("udp-relay=".Length).TrimStart() == "true";
-                    }
-                    else if (trimedInfo.StartsWith("http://") || trimedInfo.StartsWith("https://"))
-                    {
-                        // module is no more needed for newer version of surge
-                        continue;
-                    }
-                    else
-                    {
-                        logger.LogWarning($"Unsupported surge proxy parameter found: {trimedInfo}");
-                    }
+                    server.Name = name.TrimEnd();
+                    servers.Add(server);
                 }
-
-
-                servers.Add(server);
             }
             return servers.ToArray();
         }
@@ -173,7 +409,35 @@ namespace ProxyStation.ProfileParser
                         var obfsHost = string.IsNullOrEmpty(options.Host) ? Constant.ObfsucationHost : options.Host;
                         sb.Append($", obfs={SurgeParser.FormatSimpleObfsPluginMode(options.Mode)}, obfs-host={obfsHost}");
                     }
-                    sb.Append(", udp-relay=true");
+
+                    if (ssServer.UDPRelay)
+                    {
+                        sb.Append(", udp-relay=true");
+                    }
+
+                    if (ssServer.FastOpen)
+                    {
+                        sb.Append(", tfo=true");
+                    }
+
+                    sb.AppendLine();
+                    encodedServerList.Add(server);
+                }
+                else if (server is SnellServer snellServer)
+                {
+                    sb.Append($"{server.Name} = ss, {server.Host}, {server.Port}, psk={snellServer.Password}");
+
+                    if (snellServer.ObfuscationMode != SnellObfuscationMode.None)
+                    {
+                        sb.Append(", obfs=" + snellServer.ObfuscationMode.ToString().ToLower());
+                        sb.Append(", obfs-host=" + (string.IsNullOrWhiteSpace(snellServer.ObfuscationHost) ? Constant.ObfsucationHost : snellServer.ObfuscationHost));
+                    }
+
+                    if (snellServer.FastOpen)
+                    {
+                        sb.Append(", tfo=true");
+                    }
+
                     sb.AppendLine();
                     encodedServerList.Add(server);
                 }
