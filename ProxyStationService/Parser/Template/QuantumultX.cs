@@ -17,12 +17,13 @@ server = 1.2.4.8
 server = 182.254.116.116
 
 [policy]
-static=ADBlock, reject, direct, Global Traffic
-static=CN Traffic, direct, Global Traffic
-static=Global Traffic, Auto Global, direct, Proxy
+static=ADBlock, reject, direct, Auto Proxy
+static=CN Traffic, direct, Auto Proxy
+static=Global Traffic, Auto Proxy, direct, Proxy
+static=Default, Global Traffic, CN Traffic
 
 [server_remote]
-{ServerListUrlPlaceholder}, as-policy=available, tag=Auto Global
+{ServerListUrlPlaceholder}, as-policy=available, tag=Auto Proxy
 
 [filter_remote]
 https://raw.githubusercontent.com/GeQ1an/Rules/master/QuantumultX/Filter/AdBlock.list, tag=AdBlock, force-policy=ADBlock
@@ -48,7 +49,7 @@ ip-cidr, 127.0.0.0/8, direct
 ip-cidr, 172.16.0.0/12, direct
 ip-cidr, 192.168.0.0/16, direct
 geoip, cn, CN Traffic
-final, Global Traffic
+final, Default
 
 [rewrite_remote]
 https://raw.githubusercontent.com/ConnersHua/Profiles/master/Quantumult/X/Rewrite.conf

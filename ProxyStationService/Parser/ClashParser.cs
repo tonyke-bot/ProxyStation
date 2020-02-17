@@ -69,7 +69,15 @@ namespace ProxyStation.ProfileParser
                 throw new InvalidTemplateException();
             }
 
-            var proxyGroupElement = proxyGroupsElement.ElementAtOrDefault(0) as Dictionary<object, object>;
+            var proxyGroupElement = proxyGroupsElement.First(g =>
+            {
+                if (g is Dictionary<object, object> dict)
+                {
+                    var value = dict.GetValueOrDefault("slot") as string;
+                    return value == "true";
+                }
+                return false;
+            }) as Dictionary<object, object>;
             if (proxyGroupElement == null)
             {
                 throw new InvalidTemplateException();
@@ -137,6 +145,7 @@ namespace ProxyStation.ProfileParser
 
             var proxyNames = proxySettings.Select(s => s["name"]).ToArray();
             proxyGroupElement["proxies"] = proxyNames;
+            proxyGroupElement.Remove("slot");
 
             encodedServers = encodedServersList.ToArray();
             var serializer = new SerializerBuilder().Build();

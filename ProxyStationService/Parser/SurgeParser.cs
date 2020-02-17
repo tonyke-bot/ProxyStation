@@ -42,7 +42,8 @@ namespace ProxyStation.ProfileParser
             return template.Contains(Surge.ServerListPlaceholder) && template.Contains(Surge.ServerNamesPlaceholder);
         }
 
-        public Server[] ParseProxyList(string profile) => this.ParseProxyList(profile.Trim().Split("\n"));
+        public Server[] ParseProxyList(string profile)
+            => string.IsNullOrWhiteSpace(profile) ? null : this.ParseProxyList(profile.Trim().Split("\n"));
 
         public Server[] ParseProxyList(IEnumerable<string> plainProxies)
         {

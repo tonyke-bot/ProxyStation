@@ -54,6 +54,7 @@ Proxy Group:
   type: url-test
   url: http://www.gstatic.com/generate_204
   interval: 300
+  slot: true
   proxies: []
 - name: Default
   type: select

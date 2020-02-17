@@ -19,8 +19,9 @@ socks-port = 8889
 enhanced-mode-by-rule = false
 show-error-page-for-reject = true
 exclude-simple-hostnames = true
-ipv6 = false
+ipv6 = true
 replica = false
+network-framework = true
 
 [Replica]
 hide-apple-request = true
@@ -32,25 +33,22 @@ use-keyword-filter = false
 {Surge.ServerListPlaceholder}
 
 [Proxy Group]
-Default = select, Proxy, DIRECT
-Proxy = url-test, {Surge.ServerNamesPlaceholder}, url=http://captive.apple.com, interval=600, tolerance=200
-AdBlock = select, REJECT, REJECT-TINYGIF, DIRECT, Default
+Global Traffic = select, Auto Proxy, DIRECT
+CN Traffic = select, DIRECT, Auto Proxy
+Default = select, Auto Proxy, DIRECT
+AdBlock = select, REJECT, REJECT-TINYGIF, Global Traffic, CN Traffic
+Auto Proxy = url-test, {Surge.ServerNamesPlaceholder}, url=http://captive.apple.com, interval=600, tolerance=200 
 
 [Rule]
-USER-AGENT,AppStore*,Default
-USER-AGENT,com.apple.appstored*,Default
-USER-AGENT,TestFlight*,Default
-DOMAIN-SUFFIX,apple.com,Default
-DOMAIN-SUFFIX,icloud.com,Default
-DOMAIN-SUFFIX,itunes.com,Default
-DOMAIN-SUFFIX,me.com,Default
-DOMAIN-SUFFIX,mzstatic.com,Default
-RULE-SET,SYSTEM,Default
-RULE-SET,https://raw.githubusercontent.com/lhie1/Rules/master/Surge3/Reject.list,AdBlock
-RULE-SET,https://raw.githubusercontent.com/lhie1/Rules/master/Surge3/GlobalTV.list,Default
-RULE-SET,https://raw.githubusercontent.com/lhie1/Rules/master/Surge3/Proxy.list,Default
-RULE-SET,LAN,DIRECT
-GEOIP,CN,DIRECT
+RULE-SET,https://raw.githubusercontent.com/rixCloud-Inc/rixCloud-Surge3_Rules/master/Anti-GFW%2B.list,Global Traffic
+RULE-SET,https://raw.githubusercontent.com/rixCloud-Inc/rixCloud-Surge3_Rules/master/Anti-GFW.list,Global Traffic
+RULE-SET,https://raw.githubusercontent.com/rixCloud-Inc/rixCloud-Surge3_Rules/master/Stream.list,Global Traffic
+RULE-SET,https://raw.githubusercontent.com/rixCloud-Inc/rixCloud-Surge3_Rules/master/Apple.list,Global Traffic
+RULE-SET,https://raw.githubusercontent.com/rixCloud-Inc/rixCloud-Surge3_Rules/master/Reject.list, AdBlock
+RULE-SET,https://raw.githubusercontent.com/rixCloud-Inc/rixCloud-Surge3_Rules/master/Reject-GIF.list, AdBlock
+RULE-SET,https://raw.githubusercontent.com/rixCloud-Inc/rixCloud-Surge3_Rules/master/China.list,CN Traffic
+RULE-SET,https://raw.githubusercontent.com/rixCloud-Inc/rixCloud-Surge3_Rules/master/Netease_Music.list,CN Traffic
+GEOIP,CN,CN Traffic
 FINAL,Default,dns-failed
 ";
     }
