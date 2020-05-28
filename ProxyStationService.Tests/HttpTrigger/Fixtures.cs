@@ -49,13 +49,11 @@ mode: Rule
 log-level: info
 external-controller: 127.0.0.1:9090
 
-Proxy Group:
+proxy-groups:
 - name: Proxy
   type: url-test
   url: http://www.gstatic.com/generate_204
   interval: 300
-  slot: true
-  proxies: []
 - name: Default
   type: select
   proxies:
@@ -67,6 +65,17 @@ Proxy Group:
   - REJECT
   - DIRECT
   - Proxy
+    
+proxy-provider:
+  Proxy Endpoints:
+    type: http
+    path: ./endpoints.yaml
+    slot: true
+    interval: 3600
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
 
 Rule:
 - GEOIP,CN,DIRECT
@@ -81,16 +90,11 @@ bind-address: '*'
 mode: Rule
 log-level: info
 external-controller: 127.0.0.1:9090
-Proxy Group:
+proxy-groups:
 - name: Proxy
   type: url-test
   url: http://www.gstatic.com/generate_204
   interval: 300
-  proxies:
-  - sadfasd
-  - 香港高级 BGP 中继 5
-  - ""\U0001F1ED\U0001F1F0 中国杭州 -> 香港 01 | IPLC""
-  - sadfasd
 - name: Default
   type: select
   proxies:
@@ -102,50 +106,20 @@ Proxy Group:
   - REJECT
   - DIRECT
   - Proxy
+proxy-provider:
+  Proxy Endpoints:
+    type: http
+    path: ./endpoints.yaml
+    url: https://localhost/clash-proxy-provider
+    interval: 3600
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
 Rule:
 - GEOIP,CN,DIRECT
 - MATCH,Default
 - FINAL,Default
-Proxy:
-- name: sadfasd
-  type: ss
-  server: 12381293
-  port: 123
-  cipher: aes-128-gcm
-  password: 1231341
-  udp: true
-  plugin: obfs
-  plugin-opts:
-    mode: http
-    host: 2341324124
-- name: 香港高级 BGP 中继 5
-  type: ss
-  server: hk5.edge.iplc.app
-  port: 155
-  cipher: rc4-md5
-  password: asdads
-  udp: true
-- name: ""\U0001F1ED\U0001F1F0 中国杭州 -> 香港 01 | IPLC""
-  type: ss
-  server: 123.123.123.123
-  port: 10086
-  cipher: xchacha20-ietf-poly1305
-  password: gasdas
-  udp: true
-  plugin: obfs
-  plugin-opts:
-    mode: tls
-- name: sadfasd
-  type: ss
-  server: 12381293
-  port: 123
-  cipher: aes-128-gcm
-  password: 1231341
-  udp: true
-  plugin: obfs
-  plugin-opts:
-    mode: http
-    host: 2341324124
 ";
 
         public readonly static string SurgeTemplate1 = @"[General]

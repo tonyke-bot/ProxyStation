@@ -12,6 +12,7 @@ namespace ProxyStation.ProfileParser
 {
     public class ClashEncodeOptions : EncodeOptions
     {
+        public string ClashProxyProviderUrl { get; set; }
     }
 
     public class ClashParser : IProfileParser
@@ -25,26 +26,36 @@ namespace ProxyStation.ProfileParser
 
         public Server[] Parse(string profile)
         {
-            var servers = new List<Server>();
             using (var reader = new StringReader(profile))
             {
                 var yaml = new YamlStream();
                 yaml.Load(reader);
 
                 var proxyNode = (yaml.Documents[0].RootNode as YamlMappingNode).Children["Proxy"];
-                var proxies = (proxyNode as YamlSequenceNode).Children.ToList();
+                return this.Parse(proxyNode);
+            }
+        }
 
-                foreach (YamlMappingNode proxy in proxies)
+        public Server[] Parse(YamlNode proxyNode)
+        {
+            var servers = new List<Server>();
+
+            var proxies = (proxyNode as YamlSequenceNode)?.Children.ToList();
+            if (proxies?.Count == 0)
+            {
+                return servers.ToArray();
+            }
+
+            foreach (YamlMappingNode proxy in proxies)
+            {
+                switch (Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "type"))
                 {
-                    switch (Yaml.GetStringOrDefaultFromYamlChildrenNode(proxy, "type"))
-                    {
-                        case "ss":
-                            var server = ParseShadowsocksServer(proxy);
-                            if (server != null) servers.Add(server);
-                            break;
-                        case "vmess":
-                        default: break;
-                    }
+                    case "ss":
+                        var server = ParseShadowsocksServer(proxy);
+                        if (server != null) servers.Add(server);
+                        break;
+                    case "vmess":
+                    default: break;
                 }
             }
 
@@ -58,33 +69,30 @@ namespace ProxyStation.ProfileParser
             var result = deserializer.Deserialize<object>(template);
 
             var rootElement = result as Dictionary<object, object>;
-            if (rootElement == null)
+            if (rootElement == null || !rootElement.ContainsKey("proxy-provider"))
             {
                 throw new InvalidTemplateException();
             }
 
-            var proxyGroupsElement = rootElement.GetValueOrDefault("Proxy Group") as List<object>;
-            if (proxyGroupsElement == null)
+            var proxyProviderSlot = (rootElement.GetValueOrDefault("proxy-provider") as Dictionary<object, object>)
+                .FirstOrDefault(p => (p.Value as Dictionary<object, object>)?.GetValueOrDefault("slot")?.ToString() == "true");
+
+            if (proxyProviderSlot.Equals(default(KeyValuePair<object, object>)))
             {
                 throw new InvalidTemplateException();
             }
+            this.InternalEncode(options, servers, out encodedServers);
 
-            var proxyGroupElement = proxyGroupsElement.First(g =>
-            {
-                if (g is Dictionary<object, object> dict)
-                {
-                    var value = dict.GetValueOrDefault("slot") as string;
-                    return value == "true";
-                }
-                return false;
-            }) as Dictionary<object, object>;
-            if (proxyGroupElement == null)
-            {
-                throw new InvalidTemplateException();
-            }
+            var opts = options as ClashEncodeOptions;
+            (proxyProviderSlot.Value as Dictionary<object, object>).Remove("slot");
+            (proxyProviderSlot.Value as Dictionary<object, object>)["url"] = opts?.ClashProxyProviderUrl;
+            var serializer = new SerializerBuilder().Build();
+            return serializer.Serialize(rootElement);
+        }
 
+        internal List<Dictionary<string, object>> InternalEncode(EncodeOptions options, Server[] servers, out Server[] encodedServers)
+        {
             var encodedServersList = new List<Server>();
-            // template modification
             var proxySettings = servers.Select(s =>
             {
                 if (s is ShadowsocksServer ss)
@@ -132,24 +140,15 @@ namespace ProxyStation.ProfileParser
 
                     encodedServersList.Add(s);
                     return proxy;
-
                 }
                 else
                 {
                     this.logger.LogDebug($"Server {s} is ignored.");
                     return null;
                 }
-
-            });
-            rootElement.Add("Proxy", proxySettings);
-
-            var proxyNames = proxySettings.Select(s => s["name"]).ToArray();
-            proxyGroupElement["proxies"] = proxyNames;
-            proxyGroupElement.Remove("slot");
-
+            }).ToList();
             encodedServers = encodedServersList.ToArray();
-            var serializer = new SerializerBuilder().Build();
-            return serializer.Serialize(rootElement);
+            return proxySettings;
         }
 
         public string ExtName() => ".yaml";

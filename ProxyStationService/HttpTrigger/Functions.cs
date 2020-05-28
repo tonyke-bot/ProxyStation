@@ -153,6 +153,10 @@ namespace ProxyStation.HttpTrigger
                 {
                     QuantumultXListUrl = Functions.GetCurrentURL(req) + "-list",
                 },
+                ClashParser _ => new ClashEncodeOptions()
+                {
+                    ClashProxyProviderUrl = Functions.GetCurrentURL(req) + "-proxy-provider",
+                },
                 _ => new EncodeOptions(),
             };
             options.Template = template;

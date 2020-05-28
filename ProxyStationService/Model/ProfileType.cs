@@ -9,6 +9,7 @@ namespace ProxyStation.Model
         Surge,
         SurgeList,
         Clash,
+        ClashProxyProvider,
         QuantumultX,
         QuantumultXList,
     }

@@ -24,6 +24,7 @@ namespace ProxyStation
                 "general" => ProfileType.General,
                 "surge" => ProfileType.Surge,
                 "clash" => ProfileType.Clash,
+                "clash-proxy-provider" => ProfileType.ClashProxyProvider,
                 "surge-list" => ProfileType.SurgeList,
                 "alias" => ProfileType.Alias,
                 _ => ProfileType.None,

@@ -23,7 +23,7 @@ dns:
   - tls://1.0.0.1:853
   - tls://dns.google:853
 
-Proxy Group:
+proxy-groups:
 - name: Global Traffic
   type: select
   proxies:
@@ -46,11 +46,20 @@ Proxy Group:
   - DIRECT
   - Auto Proxy
 - name: Auto Proxy
-  type: url-test
-  url: http://www.gstatic.com/generate_204
-  interval: 300
-  slot: true
-  proxies: []
+  type: select
+  use:
+    - Proxy Endpoints
+    
+proxy-provider:
+  Proxy Endpoints:
+    type: http
+    path: ./endpoints.yaml
+    slot: true
+    interval: 3600
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
 
 Rule:
 # Ads in Video apps

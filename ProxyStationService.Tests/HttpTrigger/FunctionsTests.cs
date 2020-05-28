@@ -172,10 +172,12 @@ namespace ProxyStation.Tests.HttpTrigger
             var templateUrl = "https://template-url";
             var templateContent = Fixtures.ClashTemplate1;
 
-
             var downloader = Substitute.For<IDownloader>();
             var environmentManager = Substitute.For<IEnvironmentManager>();
             var request = Substitute.For<HttpRequest>();
+            request.Scheme.Returns("https");
+            request.Host.Returns(new HostString("localhost"));
+            request.Path.Returns(new PathString("/clash"));
 
             Functions.EnvironmentManager = environmentManager;
             Functions.Downloader = downloader;
