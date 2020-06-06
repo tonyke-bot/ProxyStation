@@ -11,6 +11,7 @@ using ProxyStation.ProfileParser;
 using ProxyStation.Model;
 using ProxyStation.Util;
 using System.Collections.Generic;
+using System.Web;
 
 namespace ProxyStation.HttpTrigger
 {
@@ -147,7 +148,7 @@ namespace ProxyStation.HttpTrigger
             {
                 SurgeParser _ => new SurgeEncodeOptions()
                 {
-                    ProfileURL = requestUrl
+                    ProfileURL = requestUrl + (string.IsNullOrEmpty(template) ? "" : $"?template={HttpUtility.UrlEncode(templateUrlOrName)}")
                 },
                 QuantumultXParser _ => new QuantumultXEncodeOptions()
                 {
