@@ -111,10 +111,7 @@ namespace ProxyStation.ProfileParser
                     if (ss.PluginOptions is SimpleObfsPluginOptions obfsOptions)
                     {
                         pluginOptions.Add("mode", obfsOptions.Mode.ToString().ToLower());
-                        if (obfsOptions.Mode == SimpleObfsPluginMode.HTTP)
-                        {
-                            pluginOptions.Add("host", string.IsNullOrEmpty(obfsOptions.Host) ? Constant.ObfsucationHost : obfsOptions.Host);
-                        }
+                        pluginOptions.Add("host", string.IsNullOrEmpty(obfsOptions.Host) ? Constant.ObfsucationHost : obfsOptions.Host);
                         proxy.Add("plugin", "obfs");
                         proxy.Add("plugin-opts", pluginOptions);
                     }
