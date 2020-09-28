@@ -141,7 +141,7 @@ GEOIP,CN,DIRECT
 FINAL,Default,dns-failed
 ";
 
-        public readonly static string CustomSurgeProfile1 = @"#!MANAGED-CONFIG :// interval=43200
+        public readonly static string CustomSurgeProfile1 = @"#!MANAGED-CONFIG ://?template=https%3a%2f%2ftemplate-url interval=43200
 [General]
 interface = 0.0.0.0
 socks-interface = 0.0.0.0

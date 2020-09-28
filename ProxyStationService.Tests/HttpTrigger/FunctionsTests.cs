@@ -282,5 +282,33 @@ namespace ProxyStation.Tests.HttpTrigger
             this.logger.LogInformation(resultProfile);
             // Assert.Equal(Fixtures.SurgeListProfile1, resultProfile);
         }
+
+        [Fact]
+        public async Task ShouldSuccessWithSurgeCorrectUrl()
+        {
+            var profileUrl = "test";
+            var profileName = "Test";
+            var profileConfig = $"{{\"source\": \"{profileUrl}\", \"type\": \"surge\", \"name\": \"{profileName}\"}}";
+            var profileContent = Fixtures.SurgeProfile1;
+
+            var downloader = Substitute.For<IDownloader>();
+            var environmentManager = Substitute.For<IEnvironmentManager>();
+            var request = Substitute.For<HttpRequest>();
+
+            var queryString = "?helloworld=1";
+            request.QueryString.Returns(new QueryString(queryString));
+
+            Functions.EnvironmentManager = environmentManager;
+            Functions.Downloader = downloader;
+
+            environmentManager.Get(profileName).Returns(profileConfig);
+            downloader.Download(this.logger, profileUrl).Returns(profileContent);
+
+            var result = await Functions.GetTrain(request, profileName, "surge", this.logger);
+            Assert.IsType<FileContentResult>(result);
+
+            var resultProfile = Encoding.UTF8.GetString((result as FileContentResult).FileContents);
+            Assert.Contains(queryString, resultProfile);
+        }
     }
 }

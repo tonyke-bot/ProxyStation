@@ -203,7 +203,7 @@ namespace ProxyStation.HttpTrigger
             return string.Join("->", profileChain.Select(s => s.Name));
         }
 
-        public static string GetCurrentURL(HttpRequest req) => $"{req.Scheme}://{req.Host}{req.Path}";
+        public static string GetCurrentURL(HttpRequest req) => $"{req.Scheme}://{req.Host}{req.Path}{req.QueryString}";
 
         public static ProfileType GuessTypeFromUserAgent(string userAgent)
         {

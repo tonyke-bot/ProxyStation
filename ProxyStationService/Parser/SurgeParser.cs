@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -385,7 +385,7 @@ namespace ProxyStation.ProfileParser
                 var surgeOptions = options as SurgeEncodeOptions;
                 if (!string.IsNullOrEmpty(surgeOptions.ProfileURL))
                 {
-                    template = $"#!MANAGED-CONFIG {surgeOptions.ProfileURL} interval=43200\n" + template;
+                    template = $"#!MANAGED-CONFIG {surgeOptions.ProfileURL} interval=43200\r\n" + template;
                 }
             }
 
